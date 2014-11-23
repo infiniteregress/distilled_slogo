@@ -38,13 +38,12 @@ import distilled_slogo.tokenization.Token;
  * and the grandparent set to "result", the result will be a tree which looks
  * like:                                                                            <br>
  * 
- * <pre>
- * result
- *    |
- *   foo
- *    |
- *   bar
- * <pre>
+ *           <br>
+ * result    <br>
+ * |         <br>
+ * foo       <br>
+ * |         <br>
+ * bar       <br>
  */
 public class GrammarRule implements IGrammarRule<String> {   
     /**

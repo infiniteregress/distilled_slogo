@@ -13,7 +13,7 @@ public class FileLoader {
      * 
      * @param path The path to the file; this can either be a relative or absolute path
      * @return The string representation of the file
-     * @throws IOException 
+     * @throws IOException If an error occurred reading the file
      */
     public static String loadExternalFile(String path) throws IOException {
         File file = new File(path);
@@ -30,7 +30,7 @@ public class FileLoader {
      * @param path The absolute or relative path to the file in the classpath
      * @param object The object to reference the file from
      * @return The string representation of the file
-     * @throws IOException
+     * @throws IOException If an error occurred reading the file
      */
     public static String loadInternalFile(String path, Object object) throws IOException {
         InputStream fileStream = object.getClass().getResourceAsStream(path);
