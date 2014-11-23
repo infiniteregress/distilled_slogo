@@ -1,0 +1,24 @@
+{
+    "title": "DSlogo Grammar Rule Schema",
+    "type": "array",
+    "items": {
+        "title": "Grammar Rule Definition",
+        "type": "object",
+        "properties": {
+            "pattern": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "minItems": 1
+            },
+            "parent": {
+                "type": "string"
+            },
+            "grandparent": {
+                "type": "string"
+            }
+        },
+        "required": ["pattern", "parent"]
+    }
+}

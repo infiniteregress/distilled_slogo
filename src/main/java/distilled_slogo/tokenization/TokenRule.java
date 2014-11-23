@@ -50,7 +50,9 @@ public class TokenRule implements ITokenRule {
          * @return The Builder with the explicit opening regex
          */
         public Builder opening (String opening) {
-            this.definition.put(Constants.OPENING_TOKEN_STRING, opening);
+            if (opening.length() != 0){
+                this.definition.put(Constants.OPENING_TOKEN_STRING, opening);
+            }
             return this;
         }
 
@@ -62,7 +64,9 @@ public class TokenRule implements ITokenRule {
          * @return The Builder with the explicit closing regex
          */
         public Builder closing (String closing) {
-            this.definition.put(Constants.CLOSING_TOKEN_STRING, closing);
+            if (closing.length() != 0){
+                this.definition.put(Constants.CLOSING_TOKEN_STRING, closing);
+            }
             return this;
         }
 

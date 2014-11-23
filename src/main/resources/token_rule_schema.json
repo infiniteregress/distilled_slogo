@@ -1,0 +1,27 @@
+{
+    "title": "DSlogo Token Rule Schema",
+    "type": "array",
+    "items": {
+        "title": "Token Rule Definition",
+        "type": "object",
+        "properties": {
+            "label": {
+                "description": "The label for this token, a.k.a. the token's abstract type",
+                "type": "string"
+            },
+            "body": {
+                "description": "The regex description the body of the token, i.e. the actual text",
+                "type": "string"
+            },
+            "opening": {
+                "description": "The regex delimiting this token from the previous token",
+                "type": "string"
+            },
+            "closing": {
+                "description": "The regex delimiting this token from the next token",
+                "type": "string"
+            }
+        },
+        "required": ["label", "body"]
+    }
+}

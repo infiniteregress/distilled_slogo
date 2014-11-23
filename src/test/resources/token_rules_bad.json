@@ -12,7 +12,7 @@
         "closing": "\\W+"
     },
     {
-        "label": "binaryCommand",
+        "abel": "binaryCommand",
         "body": "Sum",
         "opening": "\\W+",
         "closing": "\\W+"

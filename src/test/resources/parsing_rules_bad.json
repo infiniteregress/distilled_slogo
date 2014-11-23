@@ -6,7 +6,7 @@
     },
     {
         "pattern": ["binaryCommand", "constant", "constant"],
-        "parent": "0",
+        "arent": "0",
         "grandparent": "result"
     }
 ]
