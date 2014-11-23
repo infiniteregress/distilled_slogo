@@ -1,0 +1,12 @@
+[
+    {
+        "pattern": ["unaryCommand", "constant"]
+        "parent": "0",
+        "grandparent": "result"
+    },
+    {
+        "pattern": ["binaryCommand", "constant", "constant"]
+        "parent": "0",
+        grandparent": "result"
+    }
+}
