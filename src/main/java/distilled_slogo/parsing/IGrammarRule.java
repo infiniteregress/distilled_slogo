@@ -6,7 +6,7 @@ import java.util.List;
  * 
  *
  */
-public interface IGrammarRule {
+public interface IGrammarRule<T> {
 
     /**
      * Check if the rule matches any right subset of a list of tokens
@@ -15,6 +15,6 @@ public interface IGrammarRule {
      *            The tokens to match on
      * @return The index indicating the beginning of the match; -1 if no match
      */
-    public int matches (List<ISyntaxNode> tokens);
+    public int matches (List<ISyntaxNode<T>> tokens);
 
 }

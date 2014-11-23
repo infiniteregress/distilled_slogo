@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import distilled_slogo.Constants;
 
-public class GrammarRule implements IGrammarRule {
+public class GrammarRule implements IGrammarRule<String> {
     private List<String> command;
     private List<List<String>> args;
 
@@ -33,13 +33,13 @@ public class GrammarRule implements IGrammarRule {
     }
 
     @Override
-    public int matches (List<ISyntaxNode> nodes) {
+    public int matches (List<ISyntaxNode<String>> nodes) {
         List<List<String>> searchPattern = new ArrayList<>();
         searchPattern.add(command);
         searchPattern.addAll(args);
 
         List<String> toSearch = new ArrayList<>();
-        for (ISyntaxNode node : nodes) {
+        for (ISyntaxNode<String> node : nodes) {
             toSearch.add(node.type());
         }
 

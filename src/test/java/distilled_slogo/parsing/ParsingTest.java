@@ -15,6 +15,7 @@ import distilled_slogo.tokenization.Token;
 
 public class ParsingTest {
 
+    /*
     @Test
     public void testTokenToNode () {
         Parser parser = null;
@@ -48,36 +49,44 @@ public class ParsingTest {
 
         }
     }
+    */
 
     @Test
     public void testGrammarRule () {
         String[] args = { "constant", "constant" };
-        IGrammarRule rule = new GrammarRule("Sum", Arrays.asList(args));
-        ISyntaxNode[] tokens = { new SyntaxNode("Minus", null, null),
-                new SyntaxNode("Sum", null, null), new SyntaxNode("constant", null, null),
-                new SyntaxNode("constant", null, null) };
-        assertEquals(1, rule.matches(Arrays.asList(tokens)));
+        IGrammarRule<String> rule = new GrammarRule("Sum", Arrays.asList(args));
+        List<ISyntaxNode<String>> tokens = new ArrayList<>();
+        tokens.add(new SyntaxNode<>("Minus", null, null));
+        tokens.add(new SyntaxNode<>("Sum", null, null));
+        tokens.add(new SyntaxNode<>("constant", null, null));
+        tokens.add(new SyntaxNode<>("constant", null, null));
+        assertEquals(1, rule.matches(tokens));
     }
 
     @Test
     public void testParse () {
         String[] unaryArgs1 = { "constant" };
+        String[] unaryArgs2 = { Constants.RESULT_LABEL };
         String[] binaryArgs1 = { "constant", "constant" };
-        IGrammarRule unaryRule = new GrammarRule("Minus", Arrays.asList(unaryArgs1));
-        IGrammarRule binaryRule = new GrammarRule("Sum", Arrays.asList(binaryArgs1));
-        List<IGrammarRule> rules = new ArrayList<>();
-        rules.add(unaryRule);
-        rules.add(binaryRule);
+        String[] binaryArgs2 = { Constants.RESULT_LABEL, Constants.RESULT_LABEL };
+        
+        List<IGrammarRule<String>> rules = new ArrayList<>();
+
+        rules.add(new GrammarRule("unaryCommand", unaryArgs1));
+        rules.add(new GrammarRule("unaryCommand", unaryArgs2));
+        rules.add(new GrammarRule("binaryCommand", binaryArgs1));
+        rules.add(new GrammarRule("binaryCommand", binaryArgs2));
+
         Parser parser = null;
         try {
             parser = new Parser(rules);
         } catch (InvalidGrammarRuleException e) {
             fail("these are valid rules");
         }
-        IToken[] tokens = { new Token("Minus", "command"), new Token("Sum", "command"),
+        IToken[] tokens = { new Token("Minus", "unaryCommand"), new Token("Sum", "binaryCommand"),
                 new Token("50", "constant"), new Token("80", "constant") };
 
-        ISyntaxNode root = null;
+        ISyntaxNode<String> root = null;
         try {
             root = parser.parse(Arrays.asList(tokens));
         } catch (MalformedSyntaxException e) {
@@ -97,8 +106,8 @@ public class ParsingTest {
     @Test(expected = MalformedSyntaxException.class)
     public void testUnparseableCommand () throws Exception {
         String[] unaryArgs1 = { "constant" };
-        IGrammarRule unaryRule = new GrammarRule("Minus", Arrays.asList(unaryArgs1));
-        List<IGrammarRule> rules = new ArrayList<>();
+        IGrammarRule<String> unaryRule = new GrammarRule("Minus", Arrays.asList(unaryArgs1));
+        List<IGrammarRule<String>> rules = new ArrayList<>();
         rules.add(unaryRule);
         Parser parser = new Parser(rules);
         IToken[] tokens = { new Token("Minus", Constants.COMMAND_LABEL),

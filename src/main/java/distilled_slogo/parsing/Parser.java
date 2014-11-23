@@ -5,20 +5,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import distilled_slogo.Constants;
+import distilled_slogo.MalformedSyntaxException;
 import distilled_slogo.tokenization.IToken;
 
-public class Parser implements IParser {
+public class Parser implements IParser<String> {
 
-    private List<IGrammarRule> rules;
-    private IOperationFactory operationFactory;
+    private List<IGrammarRule<String>> rules;
+    //private IOperationFactory operationFactory;
 
-    public Parser (List<IGrammarRule> rules) throws InvalidGrammarRuleException {
+    public Parser (List<IGrammarRule<String>> rules) throws InvalidGrammarRuleException {
         loadGrammar(rules);
-        operationFactory = new OperationFactory();
+        //operationFactory = new OperationFactory();
     }
 
     @Override
-    public void loadGrammar (List<IGrammarRule> rules) throws InvalidGrammarRuleException {
+    public void loadGrammar (List<IGrammarRule<String>> rules) throws InvalidGrammarRuleException {
         if (rules != null) {
             this.rules = rules;
         } else {
@@ -27,11 +28,11 @@ public class Parser implements IParser {
     }
 
     @Override
-    public ISyntaxNode parse (List<IToken> tokens) throws MalformedSyntaxException {
-        List<ISyntaxNode> nodes = tokensToNodes(tokens);
-        List<ISyntaxNode> nodeStack = new ArrayList<>();
+    public ISyntaxNode<String> parse (List<IToken> tokens) throws MalformedSyntaxException {
+        List<ISyntaxNode<String>> nodes = tokensToNodes(tokens);
+        List<ISyntaxNode<String>> nodeStack = new ArrayList<>();
 
-        for (ISyntaxNode node : nodes) {
+        for (ISyntaxNode<String> node : nodes) {
             nodeStack.add(node);
             int index = hasProduction(nodeStack);
             while (index != -1) {
@@ -46,55 +47,18 @@ public class Parser implements IParser {
         }
     }
 
-    public List<ISyntaxNode> tokensToNodes (List<IToken> tokens) throws MalformedSyntaxException {
-        List<ISyntaxNode> nodes = new ArrayList<>();
+    public List<ISyntaxNode<String>> tokensToNodes (List<IToken> tokens) throws MalformedSyntaxException {
+        List<ISyntaxNode<String>> nodes = new ArrayList<>();
         for (IToken token : tokens) {
-            IOperation operation;
-            String type;
-            if (token.type() == Constants.CONSTANT_LABEL) {
-                operation = new Constant(token.text());
-                type = token.type();
-            } else if (token.type() == Constants.VARIABLE_LABEL) {
-                operation = new Variable(token.text());
-                type = token.type();
-            } else if (token.type() == Constants.OPENING_LIST_LABEL
-                    || token.type() == Constants.CLOSING_LIST_LABEL) {
-                operation = new Result();
-                type = token.type();
-            } else {
-                String className = dereference(token.text());
-                try {
-                    operation = operationFactory.makeElement(className);
-                } catch (ClassNotFoundException e) {
-                    throw new MalformedSyntaxException(e.getMessage());
-                }
-                type = className;
-            }
-            ISyntaxNode newNode = new SyntaxNode(type, operation, new ArrayList<>());
+            ISyntaxNode<String> newNode =
+                    new SyntaxNode<String>(token.type(), token.text(), new ArrayList<>());
             nodes.add(newNode);
         }
         return nodes;
     }
 
-    private String dereference (String element) {
-        Languages languages = null;
-        String operation = element;
-        try {
-            languages = new Languages();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        if (languages != null) {
-            Map<String, String> languageMap = languages.returnMap();
-            if (languageMap.containsKey(element)) {
-                operation = languageMap.get(element);
-            }
-        }
-        return operation;
-    }
-
-    private int hasProduction (List<ISyntaxNode> nodeStack) {
-        for (IGrammarRule rule : rules) {
+    private int hasProduction (List<ISyntaxNode<String>> nodeStack) {
+        for (IGrammarRule<String> rule : rules) {
             int index = rule.matches(nodeStack);
             if (index != -1) {
                 return index;
@@ -103,31 +67,39 @@ public class Parser implements IParser {
         return -1;
     }
 
-    private List<ISyntaxNode> reduce (List<ISyntaxNode> nodes, int index) {
-        List<ISyntaxNode> newNodes = new ArrayList<>();
+    private List<ISyntaxNode<String>> reduce (List<ISyntaxNode<String>> nodes, int index) {
+        List<ISyntaxNode<String>> newNodes = new ArrayList<>();
         for (int i = 0; i < index; i++) {
             newNodes.add(nodes.get(i));
         }
-        List<ISyntaxNode> reducedNodes = new ArrayList<>(nodes.subList(index, nodes.size()));
-        ISyntaxNode newNode = createNestedNode(reducedNodes);
+        List<ISyntaxNode<String>> reducedNodes = new ArrayList<>(nodes.subList(index, nodes.size()));
+        ISyntaxNode<String> newNode = createNestedNode(reducedNodes);
         newNodes.add(newNode);
         return newNodes;
     }
 
-    private ISyntaxNode createNestedNode (List<ISyntaxNode> nodes) {
-        List<ISyntaxNode> args = new ArrayList<>(nodes.subList(1, nodes.size()));
-        ISyntaxNode operation = nodes.get(0);
+    /**
+     * Select a node to be the parent, and nest all other nodes under that node
+     * 
+     * Currently, we assume the first node to be the parent
+     * 
+     * @param nodes The nodes to nest
+     * @return The first node, with the other nodes as children of the first node
+     */
+    private ISyntaxNode<String> createNestedNode (List<ISyntaxNode<String>> nodes) {
+        List<ISyntaxNode<String>> args = new ArrayList<>(nodes.subList(1, nodes.size()));
+        ISyntaxNode<String> operation = nodes.get(0);
         operation.setChildren(args);
 
-        ISyntaxNode result = new SyntaxNode(Constants.CONSTANT_LABEL, new Result(),
+        ISyntaxNode<String> result = new SyntaxNode<>(Constants.CONSTANT_LABEL, Constants.RESULT_LABEL,
                 new ArrayList<>());
-        List<ISyntaxNode> resultChildren = new ArrayList<>();
+        List<ISyntaxNode<String>> resultChildren = new ArrayList<>();
         resultChildren.add(operation);
         result.setChildren(resultChildren);
         return result;
     }
 
-    private String generateParseErrorMessage (List<ISyntaxNode> all, List<ISyntaxNode> remaining) {
+    private String generateParseErrorMessage (List<ISyntaxNode<String>> all, List<ISyntaxNode<String>> remaining) {
         return "Reducing " + all + " failed, creating " + remaining + " instead";
     }
 }

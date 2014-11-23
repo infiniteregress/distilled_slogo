@@ -2,30 +2,30 @@ package distilled_slogo.parsing;
 
 import java.util.List;
 
-public class SyntaxNode implements ISyntaxNode {
+public class SyntaxNode<T> implements ISyntaxNode<T> {
 
-    private IOperation operation;
-    private List<ISyntaxNode> children;
+    private T operation;
+    private List<ISyntaxNode<T>> children;
     private String type;
 
-    public SyntaxNode (String type, IOperation operation, List<ISyntaxNode> children) {
+    public SyntaxNode (String type, T operation, List<ISyntaxNode<T>> children) {
         this.type = type;
         this.operation = operation;
         this.children = children;
     }
 
     @Override
-    public IOperation operation () {
+    public T operation () {
         return operation;
     }
 
     @Override
-    public List<ISyntaxNode> children () {
+    public List<ISyntaxNode<T>> children () {
         return children;
     }
 
     @Override
-    public void setChildren (List<ISyntaxNode> children) {
+    public void setChildren (List<ISyntaxNode<T>> children) {
         this.children = children;
     }
 

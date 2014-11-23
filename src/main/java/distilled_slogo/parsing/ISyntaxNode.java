@@ -3,30 +3,36 @@ package distilled_slogo.parsing;
 import java.util.List;
 
 /**
- * A node of an abstract syntax tree
- *
+ * A node containing a certain operation to perform, and its children
+ * 
+ * @param <T> The operation contained within this node
  */
-public interface ISyntaxNode {
+public interface ISyntaxNode<T> {
     /**
      * Get the operation associated with the node
      * 
-     * @return the operation associated with the node
+     * @return The operation associated with the node
      */
-    IOperation operation ();
+    public T operation ();
 
     /**
      * Get the children of this node
      * 
-     * @return the node's children
+     * @return The node's children
      */
-    List<ISyntaxNode> children ();
-
-    public void setChildren (List<ISyntaxNode> children);
+    public List<ISyntaxNode<T>> children ();
 
     /**
-     * Get a name representing the child
+     * Set the children of this node
      * 
-     * @return the name
+     * @param children The node's children
      */
-    String type ();
+    public void setChildren (List<ISyntaxNode<T>> children);
+
+    /**
+     * Get a name representing this node
+     * 
+     * @return The name
+     */
+    public String type ();
 }
