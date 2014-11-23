@@ -98,25 +98,23 @@ public class GrammarRuleTest {
     }
     */
 
-    //@Test
-    /*
-    public void testDoTimes () {
-        String[][] doTimes = {
-                { "DoTimes" },
-                { Constants.OPENING_LIST_LABEL, Constants.VARIABLE_LABEL, Constants.CONSTANT_LABEL,
-                        Constants.CLOSING_LIST_LABEL, Constants.OPENING_LIST_LABEL,
-                        Constants.CONSTANT_LABEL, Constants.INFINITE_MATCHING_LABEL,
-                        Constants.CLOSING_LIST_LABEL } };
-        IGrammarRule doTimesRule = new GrammarRule(doTimes[0][0], doTimes[1]);
+    @Test
+    public void testDoTimes () throws InvalidGrammarRuleException {
+        String[] doTimes = {
+                            "DoTimes", Constants.OPENING_LIST_LABEL, Constants.VARIABLE_LABEL, Constants.CONSTANT_LABEL,
+                            Constants.CLOSING_LIST_LABEL, Constants.OPENING_LIST_LABEL,
+                            Constants.CONSTANT_LABEL, Constants.INFINITE_MATCHING_LABEL,
+                            Constants.CLOSING_LIST_LABEL };
+
+        IGrammarRule<String> doTimesRule = new GrammarRule(doTimes, "0", "result");
         String[] expression = { "DoTimes", Constants.OPENING_LIST_LABEL, Constants.VARIABLE_LABEL,
                 Constants.CONSTANT_LABEL, Constants.CLOSING_LIST_LABEL,
                 Constants.OPENING_LIST_LABEL, Constants.CONSTANT_LABEL,
                 Constants.CLOSING_LIST_LABEL };
-        List<ISyntaxNode> tokens = new ArrayList<>();
+        List<ISyntaxNode<String>> tokens = new ArrayList<>();
         for (String string : expression) {
-            tokens.add(new SyntaxNode(string, null, null));
+            tokens.add(new SyntaxNode<String>(new Token(string, string), "", new ArrayList<>()));
         }
         assertEquals(0, doTimesRule.matches(tokens));
     }
-    */
 }
