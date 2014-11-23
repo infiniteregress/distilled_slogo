@@ -83,7 +83,7 @@ public class Parser implements IParser<String> {
         do {
             atLeastOneMatch = false;
             for (IGrammarRule<String> rule : rules) {
-                if (rule.hasMatch(nodes)) {
+                if (rule.hasMatch(newNodes)) {
                     newNodes = rule.reduce(newNodes);
                     atLeastOneMatch = true;
                 }

@@ -46,7 +46,15 @@ import distilled_slogo.tokenization.Token;
  *   bar
  * <pre>
  */
-public class GrammarRule implements IGrammarRule<String> {    
+public class GrammarRule implements IGrammarRule<String> {   
+    /**
+     * SILLY GOTCHA: the format is NOT listed per pattern, but rather
+     * per individual symbol--
+     * 
+     * A single pattern ["hi", "there"] will generate
+     * 
+     * [["hi"],["there"]]
+     */
     List<List<String>> pattern;
     String parent;
     String grandparent;
@@ -65,6 +73,19 @@ public class GrammarRule implements IGrammarRule<String> {
     }
 
     /**
+     * Create a new grammar rule with the specified pattern and parent,
+     * but without a grandparent
+     * 
+     * @param pattern The pattern associated with the rule
+     * @param parent The parent node to be used when applying this rule
+     * @throws InvalidGrammarRuleException If parent is empty
+     */
+    public GrammarRule (List<String> pattern, String parent)
+            throws InvalidGrammarRuleException{
+        this(pattern, parent, "");
+    }
+
+    /**
      * Create a new grammar rule with the specified pattern, parent,
      * and grandparent
      * 
@@ -76,11 +97,30 @@ public class GrammarRule implements IGrammarRule<String> {
      */
     public GrammarRule (String[] pattern, String parent, String grandparent)
             throws InvalidGrammarRuleException{
+        this(Arrays.asList(pattern), parent, grandparent);
+    }
+    
+    /**
+     * Create a new grammar rule with the specified pattern, parent,
+     * and grandparent
+     * 
+     * @param pattern The pattern associated with the rule
+     * @param parent The parent node to be used when applying this rule
+     * @param grandparent The parent of the parent node to be used when
+     *                    applying this rule
+     * @throws InvalidGrammarRuleException If the parent is empty
+     */
+    public GrammarRule (List<String> pattern, String parent, String grandparent)
+            throws InvalidGrammarRuleException {
         if (parent.length() == 0) {
             throw new InvalidGrammarRuleException("The parent specified is empty");
         }
         this.pattern = new ArrayList<>();
-        this.pattern.add(Arrays.asList(pattern));
+        for (String symbol: pattern) {
+            List<String> patternEntry = new ArrayList<>();
+            patternEntry.add(symbol);
+            this.pattern.add(patternEntry);
+        }
         this.parent = parent;
         this.grandparent = grandparent;
     }
