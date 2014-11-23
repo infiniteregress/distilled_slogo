@@ -8,9 +8,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import distilled_slogo.MalformedSyntaxException;
 import org.junit.Test;
 import distilled_slogo.Constants;
+import distilled_slogo.parsing.MalformedSyntaxException;
 
 public class TokenizationTest {
     @Test
@@ -46,14 +46,14 @@ public class TokenizationTest {
         List<IToken> tokens = new ArrayList<>();
         try {
             tokens = tokenizer.tokenize(input);
-        } catch (IOException | MalformedSyntaxException e) {
+        } catch (IOException e) {
             fail();
         }
         String[][] blah = { { Constants.COMMAND_LABEL, "sum" },
                 { Constants.OPENING_LIST_LABEL, "[" }, { Constants.CONSTANT_LABEL, "60" },
                 { Constants.CONSTANT_LABEL, "50" } };
         for (int i = 0; i < blah.length; i++) {
-            assertEquals(blah[i][0], tokens.get(i).type());
+            assertEquals(blah[i][0], tokens.get(i).label());
             assertEquals(blah[i][1], tokens.get(i).text());
         }
     }

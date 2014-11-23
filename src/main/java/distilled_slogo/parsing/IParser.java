@@ -1,7 +1,6 @@
 package distilled_slogo.parsing;
 
 import java.util.List;
-import distilled_slogo.MalformedSyntaxException;
 import distilled_slogo.tokenization.IToken;
 
 /**
@@ -11,7 +10,7 @@ import distilled_slogo.tokenization.IToken;
  * @param <T> The object to evaluate over
  */
 public interface IParser<T> {
-    
+
     /**
      * Return the parse tree of a list of tokens
      * 

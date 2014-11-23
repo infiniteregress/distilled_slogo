@@ -3,8 +3,8 @@ package distilled_slogo.parsing;
 import java.util.List;
 
 /**
- * 
- *
+ * The interface for a grammar rule, which determines how to nest a flat
+ * list of symbols into a parse tree
  */
 public interface IGrammarRule<T> {
 
@@ -17,4 +17,19 @@ public interface IGrammarRule<T> {
      */
     public int matches (List<ISyntaxNode<T>> tokens);
 
+    /**
+     * Check whether a list of symbols matches this rule
+     * 
+     * @param nodes The list of nodes to check
+     * @return Whether the list matches
+     */
+    public boolean hasMatch(List<ISyntaxNode<String>> nodes);
+
+    /**
+     * Nest all or a rightmost subset of the nodes under a single node
+     * 
+     * @param nodes The nodes to reduce
+     * @return The reduced nodes
+     */
+    public List<ISyntaxNode<String>> reduce (List<ISyntaxNode<String>> nodes);
 }

@@ -1,6 +1,7 @@
 package distilled_slogo.parsing;
 
 import java.util.List;
+import distilled_slogo.tokenization.IToken;
 
 /**
  * A node containing a certain operation to perform, and its children
@@ -30,9 +31,9 @@ public interface ISyntaxNode<T> {
     public void setChildren (List<ISyntaxNode<T>> children);
 
     /**
-     * Get a name representing this node
+     * Get the token associated with this node
      * 
-     * @return The name
+     * @return The token
      */
-    public String type ();
+    public IToken token ();
 }

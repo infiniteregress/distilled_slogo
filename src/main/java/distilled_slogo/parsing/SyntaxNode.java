@@ -1,15 +1,16 @@
 package distilled_slogo.parsing;
 
 import java.util.List;
+import distilled_slogo.tokenization.IToken;
 
 public class SyntaxNode<T> implements ISyntaxNode<T> {
 
     private T operation;
     private List<ISyntaxNode<T>> children;
-    private String type;
+    private IToken token;
 
-    public SyntaxNode (String type, T operation, List<ISyntaxNode<T>> children) {
-        this.type = type;
+    public SyntaxNode (IToken token, T operation, List<ISyntaxNode<T>> children) {
+        this.token = token;
         this.operation = operation;
         this.children = children;
     }
@@ -30,12 +31,12 @@ public class SyntaxNode<T> implements ISyntaxNode<T> {
     }
 
     @Override
-    public String type () {
-        return type;
+    public IToken token () {
+        return token;
     }
 
     @Override
     public String toString () {
-        return type;
+        return token.toString();
     }
 }

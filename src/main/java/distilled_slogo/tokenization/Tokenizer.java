@@ -57,7 +57,7 @@ public class Tokenizer implements ITokenizer {
         if (rules != null) {
             this.rules = rules;
         } else {
-            throw new InvalidTokenRulesException();
+            throw new InvalidTokenRulesException("Attempted to load a null list of rules");
         }
     }
 }

@@ -8,14 +8,14 @@ public interface IToken {
     /**
      * Get the text associated with the token
      * 
-     * @return the text of the token
+     * @return The text of the token
      */
     public String text ();
 
     /**
-     * Get the type of token
+     * Get the token's label, a.k.a. the "type" of token
      * 
-     * @return the type
+     * @return The label
      */
-    public String type ();
+    public String label ();
 }

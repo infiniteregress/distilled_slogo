@@ -4,11 +4,11 @@ package distilled_slogo.tokenization;
 public class Token implements IToken{
 
 	private String text;
-	private String type;
+	private String label;
 
-	public Token(String text, String type){
+	public Token(String text, String label){
 		this.text = text;
-		this.type = type;
+		this.label = label;
 	}
 	@Override
 	public String text() {
@@ -16,11 +16,11 @@ public class Token implements IToken{
 	}
 
 	@Override
-	public String type() {
-		return type;
+	public String label() {
+		return label;
 	}
 	@Override
 	public String toString(){
-		return type + ": " + text;
+		return label + ": " + text;
 	}
 }

@@ -6,10 +6,8 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import distilled_slogo.MalformedSyntaxException;
 import org.junit.Test;
 import distilled_slogo.Constants;
-
 import distilled_slogo.tokenization.IToken;
 import distilled_slogo.tokenization.Token;
 
