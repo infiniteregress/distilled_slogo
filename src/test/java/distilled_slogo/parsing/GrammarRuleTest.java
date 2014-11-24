@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
 import distilled_slogo.Constants;
+import distilled_slogo.TestConstants;
 import distilled_slogo.tokenization.Token;
 
 public class GrammarRuleTest {
@@ -67,7 +68,7 @@ public class GrammarRuleTest {
     @Test
     public void testMatches () throws InvalidGrammarRuleException {
         String[] args = { "hi", "there", Constants.INFINITE_MATCHING_LABEL, "blah" };
-        IGrammarRule<String> rule = new GrammarRule<>(args, "0", Constants.RESULT_LABEL);
+        IGrammarRule<String> rule = new GrammarRule<>(args, "0", TestConstants.RESULT_LABEL);
         String[] tokens = { "o", "hai", "hi", "there", "there", "there", "blah" };
         List<ISyntaxNode<String>> nodes = new ArrayList<>();
         for (String token : tokens) {
@@ -101,16 +102,16 @@ public class GrammarRuleTest {
     @Test
     public void testDoTimes () throws InvalidGrammarRuleException {
         String[] doTimes = {
-                            "DoTimes", Constants.OPENING_LIST_LABEL, Constants.VARIABLE_LABEL, Constants.CONSTANT_LABEL,
-                            Constants.CLOSING_LIST_LABEL, Constants.OPENING_LIST_LABEL,
-                            Constants.CONSTANT_LABEL, Constants.INFINITE_MATCHING_LABEL,
-                            Constants.CLOSING_LIST_LABEL };
+                            "DoTimes", TestConstants.OPENING_LIST_LABEL, TestConstants.VARIABLE_LABEL, TestConstants.CONSTANT_LABEL,
+                            TestConstants.CLOSING_LIST_LABEL, TestConstants.OPENING_LIST_LABEL,
+                            TestConstants.CONSTANT_LABEL, Constants.INFINITE_MATCHING_LABEL,
+                            TestConstants.CLOSING_LIST_LABEL };
 
         IGrammarRule<String> doTimesRule = new GrammarRule<>(doTimes, "0", "result");
-        String[] expression = { "DoTimes", Constants.OPENING_LIST_LABEL, Constants.VARIABLE_LABEL,
-                Constants.CONSTANT_LABEL, Constants.CLOSING_LIST_LABEL,
-                Constants.OPENING_LIST_LABEL, Constants.CONSTANT_LABEL,
-                Constants.CLOSING_LIST_LABEL };
+        String[] expression = { "DoTimes", TestConstants.OPENING_LIST_LABEL, TestConstants.VARIABLE_LABEL,
+                TestConstants.CONSTANT_LABEL, TestConstants.CLOSING_LIST_LABEL,
+                TestConstants.OPENING_LIST_LABEL, TestConstants.CONSTANT_LABEL,
+                TestConstants.CLOSING_LIST_LABEL };
         List<ISyntaxNode<String>> tokens = new ArrayList<>();
         for (String string : expression) {
             tokens.add(new SyntaxNode<String>(new Token(string, string), "", new ArrayList<>()));
