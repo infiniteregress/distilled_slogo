@@ -18,6 +18,7 @@ public class MalformedSyntaxException extends Exception {
      * 
      * @param all The list of symbols that were parsed
      * @param remaining The incorrect result of the parsing
+     * @param <T> The generic type of the ISyntaxNode. Not used.
      */
     public <T> MalformedSyntaxException (List<ISyntaxNode<T>> all, List<ISyntaxNode<T>> remaining) {
         super("Reducing " + all + " failed, creating " + remaining + " instead");

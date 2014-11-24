@@ -10,6 +10,8 @@ import distilled_slogo.tokenization.IToken;
  * 
  * Note that this implementation only creates nodes with a string as each
  * node's "payload"
+ * 
+ * @param <T> The type of operation to be created in each node of the parse tree
  */
 public class Parser<T> implements IParser<T> {
 
@@ -20,6 +22,7 @@ public class Parser<T> implements IParser<T> {
      * Create a new parser with a certain list of rules
      * 
      * @param rules The rules this parser uses
+     * @param factory The factory used to create operations of a certain type
      * @throws InvalidGrammarRuleException If the specified rules are null
      */
     public Parser (List<IGrammarRule<T>> rules, IOperationFactory<T> factory) throws InvalidGrammarRuleException {
