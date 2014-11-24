@@ -17,7 +17,8 @@ public interface IParser<T> {
      * @param tokens The tokens to evaluate
      * @return The root of the parse tree
      * @throws MalformedSyntaxException If no single root could be created,
-     * indicating an error with the list of tokens
+     *                                  indicating an error with the list of
+     *                                  tokens
      */
     public ISyntaxNode<T> parse (List<IToken> tokens) throws MalformedSyntaxException;
 

@@ -7,9 +7,19 @@ import java.util.List;
 import java.util.Map;
 import distilled_slogo.Constants;
 
+/**
+ * A class which creates tokens from a stream of input
+ *
+ */
 public class Tokenizer implements ITokenizer {
     private List<ITokenRule> rules;
 
+    /**
+     * Create a new tokenizer
+     * 
+     * @param rules The list of token rules to use during tokenization
+     * @throws InvalidTokenRulesException If the token rules are invalid
+     */
     public Tokenizer (List<ITokenRule> rules) throws InvalidTokenRulesException {
         loadTokenRules(rules);
     }

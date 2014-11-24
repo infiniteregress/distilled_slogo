@@ -45,6 +45,9 @@ import distilled_slogo.tokenization.Token;
  * foo       <br>
  * |         <br>
  * bar       <br>
+ * 
+ * @param <T> The type associated with the ISyntaxNodes returned by this
+ *            grammar rule
  */
 public class GrammarRule<T> implements IGrammarRule<T> {   
     /**

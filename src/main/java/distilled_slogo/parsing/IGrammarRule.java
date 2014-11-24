@@ -5,14 +5,16 @@ import java.util.List;
 /**
  * The interface for a grammar rule, which determines how to nest a flat
  * list of symbols into a parse tree
+ * 
+ * @param <T> The type associated with the ISyntaxNodes returned by this
+ *            grammar rule
  */
 public interface IGrammarRule<T> {
 
     /**
      * Check if the rule matches any right subset of a list of tokens
      * 
-     * @param tokens
-     *            The tokens to match on
+     * @param tokens The tokens to match on
      * @return The index indicating the beginning of the match; -1 if no match
      */
     public int matches (List<ISyntaxNode<T>> tokens);
