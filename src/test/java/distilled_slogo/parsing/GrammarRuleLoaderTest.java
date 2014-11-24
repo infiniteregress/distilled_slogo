@@ -10,12 +10,12 @@ import distilled_slogo.util.InvalidRulesException;
 public class GrammarRuleLoaderTest {
     @Test
     public void testLoadGood() throws IOException, InvalidRulesException {
-        GrammarRuleLoader loader = new GrammarRuleLoader("./src/test/resources/parsing_rules.json");
+        GrammarRuleLoader<String> loader = new GrammarRuleLoader<>("./src/test/resources/parsing_rules.json");
         List<IGrammarRule<String>> rules = loader.getRules();
         Parser<String> parser = new Parser<>(rules, new StringOperationFactory());
     }
     @Test(expected = InvalidRulesException.class)
     public void testLoadBad() throws IOException, InvalidRulesException {
-        GrammarRuleLoader loader = new GrammarRuleLoader("./src/test/resources/parsing_rules_bad.json");
+        GrammarRuleLoader<String> loader = new GrammarRuleLoader<>("./src/test/resources/parsing_rules_bad.json");
     }
 }
