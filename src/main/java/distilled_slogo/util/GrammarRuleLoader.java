@@ -26,23 +26,22 @@ public class GrammarRuleLoader<T> extends RuleLoader<IGrammarRule<T>>{
      *                                     invalid
      */
     public GrammarRuleLoader(String grammarRulePath) throws IOException, InvalidRulesException {
-        this(grammarRulePath, true);
+        this(grammarRulePath, new ExternalFileLoader());
     }
     /**
      * Create a new grammar rule loader that loads a file
      * 
      * @param grammarRulePath The path to the grammar rule
-     * @param isExternal True if the file is relative to the filesytem,
-     *                   false if it is relative to a class
+     * @param loader The file loader used to load the grammar file
      * @throws IOException If a file I/O error occurs
      * @throws InvalidRulesException If the grammar rule file loaded is invalid
      */
-    public GrammarRuleLoader(String grammarRulePath, boolean isExternal) throws IOException, InvalidRulesException {
-        super(grammarRulePath, grammarRuleSchemaPath, isExternal);
+    public GrammarRuleLoader(String grammarRulePath, FileLoader loader) throws IOException, InvalidRulesException {
+        super(grammarRulePath, grammarRuleSchemaPath, loader);
     }
     @Override
-    public List<IGrammarRule<T>> generateRules (String grammarRulePath, boolean isExternal) throws IOException, InvalidRulesException {
-        String grammarRuleString = FileLoader.loadFile(grammarRulePath, isExternal, this);
+    public List<IGrammarRule<T>> generateRules (String grammarRulePath, FileLoader loader) throws IOException, InvalidRulesException {
+        String grammarRuleString = loader.loadFile(grammarRulePath, this);
         JSONArray grammarRules = new JSONArray(grammarRuleString);
         List<IGrammarRule<T>> rules = new ArrayList<>();
         for (int i = 0; i < grammarRules.length(); i++){

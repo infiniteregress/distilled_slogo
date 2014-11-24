@@ -20,11 +20,11 @@ public abstract class RuleLoader<T> {
      * @throws IOException If an error occurred reading files
      * @throws InvalidRulesException If the rules loaded are invalid
      */
-    protected RuleLoader(String jsonPath, String schemaPath, boolean jsonIsExternal)
+    protected RuleLoader(String jsonPath, String schemaPath, FileLoader loader)
             throws IOException, InvalidRulesException {
         this.schemaPath = schemaPath;
-        if (validate(jsonPath, jsonIsExternal)) {
-            rules = generateRules(jsonPath, jsonIsExternal);
+        if (validate(jsonPath, loader)) {
+            rules = generateRules(jsonPath, loader);
         }
         else {
             throw new InvalidRulesException(jsonPath + " is not valid");
@@ -34,23 +34,23 @@ public abstract class RuleLoader<T> {
      * Generate a list of rules based on a json file
      * 
      * @param jsonPath The path to the rules
-     * @param isExternal Whether the rules file is external
+     * @param load The file loader used to load the json file
      * @return The list of rules
      * @throws IOException If an error occurred reading files
      * @throws InvalidRulesException If the rules loaded are invalid
      */
-    public abstract List<T> generateRules (String jsonPath, boolean isExternal) throws IOException, InvalidRulesException;
+    public abstract List<T> generateRules (String jsonPath, FileLoader loader) throws IOException, InvalidRulesException;
 
     /**
      * Validate the json file based on the JSON schema
      * 
      * @param jsonPath The path to the rules
-     * @param isExternal Whether the rules file is external
+     * @param loader The file loader used to load the json file
      * @return Whether the rules file is valid
      * @throws IOException If an error occurred reading files
      */
-    public boolean validate(String jsonPath, boolean isExternal) throws IOException {
-        return Validator.validate(jsonPath, this.schemaPath, isExternal, this);
+    public boolean validate(String jsonPath, FileLoader loader) throws IOException {
+        return Validator.validate(jsonPath, this.schemaPath, loader);
     }
 
     /**

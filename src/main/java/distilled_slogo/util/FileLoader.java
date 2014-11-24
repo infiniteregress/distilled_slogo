@@ -11,57 +11,30 @@ import java.io.InputStreamReader;
  * A utility class to simplify loading files
  *
  */
-public class FileLoader {
+public abstract class FileLoader {
     /**
      * Load a file and return the string representation
+     * 
      * @param path The path to the file
-     * @param isExternal True if the file is relative to the filesystem,
-     *                   false if it is relative to a class
-     * @param object The class relative which to evaluate the path
      * @return The string representation of the file
      * @throws IOException If an error occurred reading the file
      */
-    public static String loadFile(String path, boolean isExternal, Object object) throws IOException {
-        if (isExternal) {
-            return loadExternalFile(path);
-        }
-        else {
-            return loadInternalFile(path, object);
-        }
+    public String loadFile(String path) throws IOException {
+        return loadFile(path, this);
     }
+
     /**
-     * Loads a file from the filesystem
+     * Load a file and return the string representation
      * 
-     * @param path The path to the file; this can either be a relative or absolute path
+     * @param path The path to the file
+     * @param relativeTo An object whose class is used as a reference point to
+     *                   locate a file. May or may not be used, depending on
+     *                   implementation and the path.
      * @return The string representation of the file
      * @throws IOException If an error occurred reading the file
      */
-    public static String loadExternalFile(String path) throws IOException {
-        File file = new File(path);
-        try (
-                BufferedReader configFileReader = new BufferedReader(new FileReader(file));
-        ) {
-            return getStringFromBufferedReader(configFileReader);
-        }
-    }
-    
-    /**
-     * Load a file relative to a class, e.g. from within a jar
-     * 
-     * @param path The absolute or relative path to the file relative to a class
-     * @param object The object to reference the file from
-     * @return The string representation of the file
-     * @throws IOException If an error occurred reading the file
-     */
-    public static String loadInternalFile(String path, Object object) throws IOException {
-        InputStream fileStream = object.getClass().getResourceAsStream(path);
-        if (fileStream == null) {
-            return "";
-        }
-        BufferedReader fileReader = new BufferedReader(new InputStreamReader(fileStream));
-        return getStringFromBufferedReader(fileReader);
-    }
-    
+    public abstract String loadFile(String path, Object relativeTo) throws IOException;
+
     /**
      * Read out a string from a BufferedReader
      * 
@@ -69,7 +42,7 @@ public class FileLoader {
      * @return The String read out
      * @throws IOException If an error occurred when reading the BufferedReader
      */
-    public static String getStringFromBufferedReader(BufferedReader reader) throws IOException{
+    public String getStringFromBufferedReader(BufferedReader reader) throws IOException{
         StringBuilder stringBuilder = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {

@@ -20,15 +20,16 @@ public class Validator {
      * Validate a json file using a json schema file
      * 
      * @param jsonPath The path to the JSON to validate
-     * @param schemaPath The path to the JSON schema used for validation
-     * @param jsonIsExternal Whether the json path is internal or external
-     * @param theClass The class relative which to evaluate the file path
+     * @param schemaPath The path to the JSON schema used for validation.
+     *                   This path is always internal to protect the JSON
+     *                   schema from modification 
+     * @param jsonLoader The file loader to load the json file
      * @return Whether the JSON is valid
      * @throws IOException If an error occurred reading files
      */
-    public static boolean validate (String jsonPath, String schemaPath, boolean jsonIsExternal, Object theClass) throws IOException {
-        String tokenRuleString = FileLoader.loadExternalFile(jsonPath);
-        String schemaString = FileLoader.loadInternalFile(schemaPath, theClass);
+    public static boolean validate (String jsonPath, String schemaPath, FileLoader jsonLoader) throws IOException {
+        String tokenRuleString = jsonLoader.loadFile(jsonPath);
+        String schemaString = new InternalFileLoader().loadFile(schemaPath);
         JsonNode schemaNode = makeJsonNode(schemaString);
         JsonNode tokenRule = makeJsonNode(tokenRuleString);
         

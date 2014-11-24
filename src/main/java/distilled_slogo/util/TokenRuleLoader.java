@@ -24,24 +24,24 @@ public class TokenRuleLoader extends RuleLoader<ITokenRule> {
      * @throws InvalidTokenRulesException If the token rules are invalid
      */
     public TokenRuleLoader(String tokenRulePath) throws IOException, InvalidRulesException {
-        this(tokenRulePath, true);
+        this(tokenRulePath, new ExternalFileLoader());
     }
 
     /**
      * Create a new token rule loader that loads a file
      * 
      * @param tokenRulePath The path to the token rule file
-     * @param isExternal Whether the path is external
+     * @param jsonLoader The file loader used to load the token rules
      * @throws IOException If an error occurred reading the file
      * @throws InvalidRulesException If the token rules are invalid
      */
-    public TokenRuleLoader(String tokenRulePath, boolean isExternal) throws IOException, InvalidRulesException {
-        super(tokenRulePath, tokenRuleSchemaPath, isExternal);
+    public TokenRuleLoader(String tokenRulePath, FileLoader jsonLoader) throws IOException, InvalidRulesException {
+        super(tokenRulePath, tokenRuleSchemaPath, jsonLoader);
     }
 
     @Override
-    public List<ITokenRule> generateRules(String tokenRulePath, boolean isExternal) throws IOException{
-        String tokenRuleString = FileLoader.loadFile(tokenRulePath, isExternal, this);
+    public List<ITokenRule> generateRules(String tokenRulePath, FileLoader loader) throws IOException{
+        String tokenRuleString = loader.loadFile(tokenRulePath);
         JSONArray tokenRules = new JSONArray(tokenRuleString);
         List<ITokenRule> rules = new ArrayList<>();
         for (int i = 0; i < tokenRules.length(); i++) {
