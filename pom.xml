@@ -4,7 +4,7 @@
   <groupId>distilled_slogo</groupId>
   <artifactId>distilled_slogo</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.1</version>
+  <version>1.0.0</version>
   <name>Language parsing library</name>
   <description>A library which allows users to define rules to generate parsing trees</description>
   <properties>
