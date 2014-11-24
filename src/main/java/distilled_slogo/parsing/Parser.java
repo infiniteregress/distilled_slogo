@@ -11,10 +11,10 @@ import distilled_slogo.tokenization.IToken;
  * Note that this implementation only creates nodes with a string as each
  * node's "payload"
  */
-public class Parser implements IParser<String> {
+public class Parser<T> implements IParser<T> {
 
-    private List<IGrammarRule<String>> rules;
-    //private IOperationFactory operationFactory;
+    private List<IGrammarRule<T>> rules;
+    private IOperationFactory<T> operationFactory;
 
     /**
      * Create a new parser with a certain list of rules
@@ -22,13 +22,13 @@ public class Parser implements IParser<String> {
      * @param rules The rules this parser uses
      * @throws InvalidGrammarRuleException If the specified rules are null
      */
-    public Parser (List<IGrammarRule<String>> rules) throws InvalidGrammarRuleException {
+    public Parser (List<IGrammarRule<T>> rules, IOperationFactory<T> factory) throws InvalidGrammarRuleException {
         loadGrammar(rules);
-        //operationFactory = new OperationFactory();
+        this.operationFactory = factory;
     }
 
     @Override
-    public void loadGrammar (List<IGrammarRule<String>> rules) throws InvalidGrammarRuleException {
+    public void loadGrammar (List<IGrammarRule<T>> rules) throws InvalidGrammarRuleException {
         if (rules != null) {
             this.rules = rules;
         } else {
@@ -37,11 +37,11 @@ public class Parser implements IParser<String> {
     }
 
     @Override
-    public ISyntaxNode<String> parse (List<IToken> tokens) throws MalformedSyntaxException {
-        List<ISyntaxNode<String>> nodes = tokensToNodes(tokens);
-        List<ISyntaxNode<String>> nodeStack = new ArrayList<>();
+    public ISyntaxNode<T> parse (List<IToken> tokens) throws MalformedSyntaxException {
+        List<ISyntaxNode<T>> nodes = tokensToNodes(tokens);
+        List<ISyntaxNode<T>> nodeStack = new ArrayList<>();
 
-        for (ISyntaxNode<String> node : nodes) {
+        for (ISyntaxNode<T> node : nodes) {
             nodeStack.add(node);
             nodeStack = tryProductions(nodeStack);
         }
@@ -60,11 +60,12 @@ public class Parser implements IParser<String> {
      * @param tokens The list of tokens to convert
      * @return The corresponding list of parse tree nodes
      */
-    List<ISyntaxNode<String>> tokensToNodes (List<IToken> tokens) {
-        List<ISyntaxNode<String>> nodes = new ArrayList<>();
+    List<ISyntaxNode<T>> tokensToNodes (List<IToken> tokens) {
+        List<ISyntaxNode<T>> nodes = new ArrayList<>();
         for (IToken token : tokens) {
-            ISyntaxNode<String> newNode =
-                    new SyntaxNode<String>(token, token.text(), new ArrayList<>());
+            T operation = operationFactory.makeOperation(token.text());
+            ISyntaxNode<T> newNode =
+                    new SyntaxNode<T>(token, operation, new ArrayList<>());
             nodes.add(newNode);
         }
         return nodes;
@@ -77,12 +78,12 @@ public class Parser implements IParser<String> {
      * @param nodes The list of nodes to reduce
      * @return The reduce list of nodes
      */
-    private List<ISyntaxNode<String>> tryProductions(List<ISyntaxNode<String>> nodes){
-        List<ISyntaxNode<String>> newNodes = new ArrayList<>(nodes);
+    private List<ISyntaxNode<T>> tryProductions(List<ISyntaxNode<T>> nodes){
+        List<ISyntaxNode<T>> newNodes = new ArrayList<>(nodes);
         boolean atLeastOneMatch;
         do {
             atLeastOneMatch = false;
-            for (IGrammarRule<String> rule : rules) {
+            for (IGrammarRule<T> rule : rules) {
                 if (rule.hasMatch(newNodes)) {
                     newNodes = rule.reduce(newNodes);
                     atLeastOneMatch = true;

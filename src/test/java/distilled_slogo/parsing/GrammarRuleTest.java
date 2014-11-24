@@ -11,7 +11,7 @@ import distilled_slogo.tokenization.Token;
 public class GrammarRuleTest {
     public void testInfiniteMatchRecurse (boolean expected, String[][] pattern, String[] search)
             throws InvalidGrammarRuleException {
-        GrammarRule rule = new GrammarRule(new ArrayList<>(), "0");
+        GrammarRule<String> rule = new GrammarRule<>(new ArrayList<>(), "0");
         List<List<String>> searchPattern = new ArrayList<>();
         for (String[] arg : pattern) {
             searchPattern.add(Arrays.asList(arg));
@@ -67,7 +67,7 @@ public class GrammarRuleTest {
     @Test
     public void testMatches () throws InvalidGrammarRuleException {
         String[] args = { "hi", "there", Constants.INFINITE_MATCHING_LABEL, "blah" };
-        IGrammarRule<String> rule = new GrammarRule(args, "0", Constants.RESULT_LABEL);
+        IGrammarRule<String> rule = new GrammarRule<>(args, "0", Constants.RESULT_LABEL);
         String[] tokens = { "o", "hai", "hi", "there", "there", "there", "blah" };
         List<ISyntaxNode<String>> nodes = new ArrayList<>();
         for (String token : tokens) {
@@ -106,7 +106,7 @@ public class GrammarRuleTest {
                             Constants.CONSTANT_LABEL, Constants.INFINITE_MATCHING_LABEL,
                             Constants.CLOSING_LIST_LABEL };
 
-        IGrammarRule<String> doTimesRule = new GrammarRule(doTimes, "0", "result");
+        IGrammarRule<String> doTimesRule = new GrammarRule<>(doTimes, "0", "result");
         String[] expression = { "DoTimes", Constants.OPENING_LIST_LABEL, Constants.VARIABLE_LABEL,
                 Constants.CONSTANT_LABEL, Constants.CLOSING_LIST_LABEL,
                 Constants.OPENING_LIST_LABEL, Constants.CONSTANT_LABEL,

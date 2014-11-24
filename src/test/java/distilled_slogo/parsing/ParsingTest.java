@@ -15,9 +15,9 @@ public class ParsingTest {
 
     @Test
     public void testTokenToNode () {
-        Parser parser = null;
+        Parser<String> parser = null;
         try {
-            parser = new Parser(new ArrayList<>());
+            parser = new Parser<>(new ArrayList<>(), new StringOperationFactory());
         } catch (InvalidGrammarRuleException e) {
             fail();
         }
@@ -38,7 +38,7 @@ public class ParsingTest {
     @Test
     public void testGrammarRule () throws InvalidGrammarRuleException {
         String[] args = { "Sum", "constant", "constant" };
-        IGrammarRule<String> rule = new GrammarRule(args, "0", Constants.RESULT_LABEL);
+        IGrammarRule<String> rule = new GrammarRule<>(args, "0", Constants.RESULT_LABEL);
         List<ISyntaxNode<String>> tokens = new ArrayList<>();
         tokens.add(new SyntaxNode<String>(new Token("Minus", "Minus"), "", new ArrayList<>()));
         tokens.add(new SyntaxNode<String>(new Token("Sum","Sum"), "", new ArrayList<>()));
@@ -56,14 +56,14 @@ public class ParsingTest {
         
         List<IGrammarRule<String>> rules = new ArrayList<>();
 
-        rules.add(new GrammarRule(unaryArgs1, "0", Constants.RESULT_LABEL));
-        rules.add(new GrammarRule(unaryArgs2, "0", Constants.RESULT_LABEL));
-        rules.add(new GrammarRule(binaryArgs1, "0", Constants.RESULT_LABEL));
-        rules.add(new GrammarRule(binaryArgs2, "0", Constants.RESULT_LABEL));
+        rules.add(new GrammarRule<String>(unaryArgs1, "0", Constants.RESULT_LABEL));
+        rules.add(new GrammarRule<String>(unaryArgs2, "0", Constants.RESULT_LABEL));
+        rules.add(new GrammarRule<String>(binaryArgs1, "0", Constants.RESULT_LABEL));
+        rules.add(new GrammarRule<String>(binaryArgs2, "0", Constants.RESULT_LABEL));
 
-        Parser parser = null;
+        Parser<String> parser = null;
         try {
-            parser = new Parser(rules);
+            parser = new Parser<>(rules, new StringOperationFactory());
         } catch (InvalidGrammarRuleException e) {
             fail("these are valid rules");
         }
@@ -82,7 +82,7 @@ public class ParsingTest {
 
     @Test(expected = MalformedSyntaxException.class)
     public void testInvalidCommand () throws Exception {
-        Parser parser = new Parser(new ArrayList<>());
+        Parser<String> parser = new Parser<>(new ArrayList<>(), new StringOperationFactory());
         IToken[] tokens = { new Token("foo", "fruh"), new Token("ins", "bett") };
         parser.parse(Arrays.asList(tokens));
     }
@@ -90,10 +90,10 @@ public class ParsingTest {
     @Test(expected = MalformedSyntaxException.class)
     public void testUnparseableCommand () throws Exception {
         String[] unaryArgs1 = { "Minus", "constant" };
-        IGrammarRule<String> unaryRule = new GrammarRule(unaryArgs1, "0", Constants.RESULT_LABEL);
+        IGrammarRule<String> unaryRule = new GrammarRule<String>(unaryArgs1, "0", Constants.RESULT_LABEL);
         List<IGrammarRule<String>> rules = new ArrayList<>();
         rules.add(unaryRule);
-        Parser parser = new Parser(rules);
+        Parser<String> parser = new Parser<>(rules, new StringOperationFactory());
         IToken[] tokens = { new Token("Minus", Constants.COMMAND_LABEL),
                 new Token("Minus", Constants.COMMAND_LABEL) };
         parser.parse(Arrays.asList(tokens));

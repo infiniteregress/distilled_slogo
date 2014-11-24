@@ -1,6 +1,8 @@
 package distilled_slogo.parsing;
 
+import java.util.ArrayList;
 import java.util.List;
+import distilled_slogo.tokenization.IToken;
 
 /**
  * Indicate that the syntax of the command was incorrect
@@ -8,8 +10,8 @@ import java.util.List;
  */
 public class MalformedSyntaxException extends Exception {
     private static final long serialVersionUID = 927618039710294637L;
-    private List<ISyntaxNode<String>> all;
-    private List<ISyntaxNode<String>> remaining;
+    private List<IToken> all;
+    private List<IToken> remaining;
 
     /**
      * Indicate a syntax error during parsing, including a helpful message
@@ -17,10 +19,16 @@ public class MalformedSyntaxException extends Exception {
      * @param all The list of symbols that were parsed
      * @param remaining The incorrect result of the parsing
      */
-    public MalformedSyntaxException (List<ISyntaxNode<String>> all, List<ISyntaxNode<String>> remaining) {
+    public <T> MalformedSyntaxException (List<ISyntaxNode<T>> all, List<ISyntaxNode<T>> remaining) {
         super("Reducing " + all + " failed, creating " + remaining + " instead");
-        this.all = all;
-        this.remaining = remaining;
+        this.all = new ArrayList<>();
+        for (ISyntaxNode<T> node: all) {
+            this.all.add(node.token());
+        }
+        this.remaining = new ArrayList<>();
+        for (ISyntaxNode<T> node: remaining) {
+            this.remaining.add(node.token());
+        }
     }
 
     /**
@@ -28,7 +36,7 @@ public class MalformedSyntaxException extends Exception {
      * 
      * @return The symbols
      */
-    public List<ISyntaxNode<String>> allSymbols () {
+    public List<IToken> allSymbols () {
         return all;
     }
 
@@ -37,7 +45,7 @@ public class MalformedSyntaxException extends Exception {
      * 
      * @return The symbols
      */
-    public List<ISyntaxNode<String>> remainingSymbols () {
+    public List<IToken> remainingSymbols () {
         return remaining;
     }
 }

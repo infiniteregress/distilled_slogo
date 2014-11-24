@@ -23,7 +23,7 @@ public interface IGrammarRule<T> {
      * @param nodes The list of nodes to check
      * @return Whether the list matches
      */
-    public boolean hasMatch(List<ISyntaxNode<String>> nodes);
+    public boolean hasMatch(List<ISyntaxNode<T>> nodes);
 
     /**
      * Nest all or a rightmost subset of the nodes under a single node
@@ -31,5 +31,5 @@ public interface IGrammarRule<T> {
      * @param nodes The nodes to reduce
      * @return The reduced nodes
      */
-    public List<ISyntaxNode<String>> reduce (List<ISyntaxNode<String>> nodes);
+    public List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes);
 }

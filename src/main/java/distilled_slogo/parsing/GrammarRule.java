@@ -46,7 +46,7 @@ import distilled_slogo.tokenization.Token;
  * |         <br>
  * bar       <br>
  */
-public class GrammarRule implements IGrammarRule<String> {   
+public class GrammarRule<T> implements IGrammarRule<T> {   
     /**
      * SILLY GOTCHA: the format is NOT listed per pattern, but rather
      * per individual symbol--
@@ -136,11 +136,11 @@ public class GrammarRule implements IGrammarRule<String> {
      *         otherwise
      */
     @Override
-    public int matches (List<ISyntaxNode<String>> nodes) {
+    public int matches (List<ISyntaxNode<T>> nodes) {
         List<List<String>> searchPattern = new ArrayList<>(pattern);
 
         List<String> toSearch = new ArrayList<>();
-        for (ISyntaxNode<String> node : nodes) {
+        for (ISyntaxNode<T> node : nodes) {
             toSearch.add(node.token().label());
         }
 
@@ -264,17 +264,17 @@ public class GrammarRule implements IGrammarRule<String> {
     }
 
     @Override
-    public boolean hasMatch(List<ISyntaxNode<String>> nodes) {
+    public boolean hasMatch(List<ISyntaxNode<T>> nodes) {
         return matches(nodes) == -1 ? false: true;
     }
 
     @Override
-    public List<ISyntaxNode<String>> reduce (List<ISyntaxNode<String>> nodes) {
+    public List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes) {
         int matchLocation = matches(nodes);
         if (matchLocation == -1) {
             return nodes;
         }
-        List<ISyntaxNode<String>> reduced = reduce(nodes, matchLocation);
+        List<ISyntaxNode<T>> reduced = reduce(nodes, matchLocation);
         return reduced;
     }
 
@@ -285,12 +285,12 @@ public class GrammarRule implements IGrammarRule<String> {
      * @param index The starting index where the nesting will occur
      * @return The nested list
      */
-    private List<ISyntaxNode<String>> reduce (List<ISyntaxNode<String>> nodes, int index) {
-        List<ISyntaxNode<String>> newNodes = new ArrayList<>();
+    private List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes, int index) {
+        List<ISyntaxNode<T>> newNodes = new ArrayList<>();
         for (int i = 0; i < index; i++) {
             newNodes.add(nodes.get(i));
         }
-        List<ISyntaxNode<String>> reducedNodes = new ArrayList<>(nodes.subList(index, nodes.size()));
+        List<ISyntaxNode<T>> reducedNodes = new ArrayList<>(nodes.subList(index, nodes.size()));
         reducedNodes = createNestedNodes(reducedNodes);
         newNodes.addAll(reducedNodes);
         return newNodes;
@@ -304,8 +304,8 @@ public class GrammarRule implements IGrammarRule<String> {
      * @param nodes The list of nodes to nest
      * @return The nested list
      */
-    private List<ISyntaxNode<String>> createNestedNodes (List<ISyntaxNode<String>> nodes) {
-        List<ISyntaxNode<String>> newNodes = new ArrayList<>(nodes);
+    private List<ISyntaxNode<T>> createNestedNodes (List<ISyntaxNode<T>> nodes) {
+        List<ISyntaxNode<T>> newNodes = new ArrayList<>(nodes);
         newNodes = createNestedNodes(newNodes, parent);
         if (grandparent.length() != 0){
             newNodes = createNestedNodes(newNodes, grandparent);
@@ -322,8 +322,8 @@ public class GrammarRule implements IGrammarRule<String> {
      * @param parent The parent or grandparent to nest
      * @return The nested list
      */
-    private List<ISyntaxNode<String>> createNestedNodes
-    (List<ISyntaxNode<String>> nodes, String parent) {
+    private List<ISyntaxNode<T>> createNestedNodes
+    (List<ISyntaxNode<T>> nodes, String parent) {
         int index = -1;
         try {
             index = Integer.parseInt(parent);
@@ -359,11 +359,11 @@ public class GrammarRule implements IGrammarRule<String> {
      * @return The nested list, with a single parent entry and the rest of the nodes
      *         as children of the parent
      */
-    private List<ISyntaxNode<String>> nestNodes(List<ISyntaxNode<String>> nodes, int parentIndex){
-        List<ISyntaxNode<String>> newNodes = new ArrayList<>();
+    private List<ISyntaxNode<T>> nestNodes(List<ISyntaxNode<T>> nodes, int parentIndex){
+        List<ISyntaxNode<T>> newNodes = new ArrayList<>();
         
-        List<ISyntaxNode<String>> children = new ArrayList<>(nodes);
-        ISyntaxNode<String> parent = children.get(parentIndex);
+        List<ISyntaxNode<T>> children = new ArrayList<>(nodes);
+        ISyntaxNode<T> parent = children.get(parentIndex);
         children.remove(parentIndex);
         parent.setChildren(children);
         newNodes.add(parent);
@@ -378,12 +378,12 @@ public class GrammarRule implements IGrammarRule<String> {
      * @return The nested list, with a single parent entry and the rest of the nodes
      *         as children of the parent
      */
-    private List<ISyntaxNode<String>> nestNodes(List<ISyntaxNode<String>> nodes, String externalParent){
-        List<ISyntaxNode<String>> newNodes = new ArrayList<>();
-        ISyntaxNode<String> parent =
-                new SyntaxNode<String>(
+    private List<ISyntaxNode<T>> nestNodes(List<ISyntaxNode<T>> nodes, String externalParent){
+        List<ISyntaxNode<T>> newNodes = new ArrayList<>();
+        ISyntaxNode<T> parent =
+                new SyntaxNode<T>(
                         new Token("", externalParent),
-                        "",
+                        null,
                         new ArrayList<>(nodes));
         newNodes.add(parent);
         return newNodes;
