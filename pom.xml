@@ -7,6 +7,9 @@
   <version>0.0.1</version>
   <name>Language parsing library</name>
   <description>A library which allows users to define rules to generate parsing trees</description>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>com.github.fge</groupId>
