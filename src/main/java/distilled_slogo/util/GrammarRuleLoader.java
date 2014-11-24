@@ -1,4 +1,4 @@
-package distilled_slogo.parsing;
+package distilled_slogo.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -6,31 +6,52 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import distilled_slogo.Constants;
-import distilled_slogo.tokenization.ITokenRule;
-import distilled_slogo.util.FileLoader;
-import distilled_slogo.util.Validator;
+import distilled_slogo.parsing.GrammarRule;
+import distilled_slogo.parsing.IGrammarRule;
+import distilled_slogo.parsing.InvalidGrammarRuleException;
 
-public class GrammarRuleLoader {
-    private List<IGrammarRule<String>> rules;
-    public GrammarRuleLoader(String grammarRulePath) throws JSONException, IOException, ProcessingException, InvalidGrammarRuleException{
-        this(grammarRulePath, "/grammar_rule_schema.json");
+/**
+ * A class to load grammar rules from a file.
+ */
+public class GrammarRuleLoader extends RuleLoader<IGrammarRule<String>>{
+    private static final String grammarRuleSchemaPath = "/grammar_rule_schema.json";
+
+    /**
+     * Create a new grammar rule loader that loads an external file
+     * 
+     * @param grammarRulePath The path to the grammar rule file
+     * @throws IOException If a file I/O error occurs
+     * @throws InvalidRulesException If the grammar rule file loaded is
+     *                                     invalid
+     */
+    public GrammarRuleLoader(String grammarRulePath) throws IOException, InvalidRulesException {
+        this(grammarRulePath, true);
     }
-    private GrammarRuleLoader(String grammarRulePath, String schemaPath) throws JSONException, IOException, ProcessingException, InvalidGrammarRuleException{
-        if (Validator.validate(grammarRulePath, schemaPath, this)){
-            rules = generateRules(grammarRulePath);
-        }
-        else {
-            throw new InvalidGrammarRuleException(grammarRulePath + "is not valid");
-        }
+    /**
+     * Create a new grammar rule loader that loads a file
+     * 
+     * @param grammarRulePath The path to the grammar rule
+     * @param isExternal True if the file is relative to the filesytem,
+     *                   false if it is relative to a class
+     * @throws IOException If a file I/O error occurs
+     * @throws InvalidRulesException If the grammar rule file loaded is invalid
+     */
+    public GrammarRuleLoader(String grammarRulePath, boolean isExternal) throws IOException, InvalidRulesException {
+        super(grammarRulePath, grammarRuleSchemaPath, isExternal);
     }
-    private List<IGrammarRule<String>> generateRules (String grammarRulePath) throws IOException, JSONException, InvalidGrammarRuleException {
-        String grammarRuleString = FileLoader.loadExternalFile(grammarRulePath);
+    @Override
+    public List<IGrammarRule<String>> generateRules (String grammarRulePath, boolean isExternal) throws IOException, InvalidRulesException {
+        String grammarRuleString = FileLoader.loadFile(grammarRulePath, isExternal, this);
         JSONArray grammarRules = new JSONArray(grammarRuleString);
         List<IGrammarRule<String>> rules = new ArrayList<>();
         for (int i = 0; i < grammarRules.length(); i++){
-            rules.add(makeGrammarRuleFromJsonObject(grammarRules.getJSONObject(i)));
+            try {
+                rules.add(makeGrammarRuleFromJsonObject(grammarRules.getJSONObject(i)));
+            }
+            catch (JSONException | InvalidGrammarRuleException e) {
+                throw new InvalidRulesException(e.getMessage());
+            }
         }
         return rules;
     }
@@ -47,8 +68,5 @@ public class GrammarRuleLoader {
         }
         IGrammarRule<String> rule = new GrammarRule(pattern, parent, grandparent);
         return rule;
-    }
-    public List<IGrammarRule<String>> getRules(){
-        return rules;
     }
 }

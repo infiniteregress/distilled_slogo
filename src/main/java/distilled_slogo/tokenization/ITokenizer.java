@@ -3,7 +3,6 @@ package distilled_slogo.tokenization;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
-import distilled_slogo.parsing.MalformedSyntaxException;
 
 /**
  * Something which converts a stream of characters to a list of tokens

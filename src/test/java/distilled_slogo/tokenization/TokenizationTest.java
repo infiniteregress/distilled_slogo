@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import distilled_slogo.Constants;
-import distilled_slogo.parsing.MalformedSyntaxException;
 
 public class TokenizationTest {
     @Test
