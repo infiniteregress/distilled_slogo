@@ -2,9 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>distilled_slogo</groupId>
-  <artifactId>distilled_slogo</artifactId>
+  <artifactId>distilled-slogo</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <name>Language parsing library</name>
   <description>A library which allows users to define rules to generate parsing trees</description>
   <properties>
