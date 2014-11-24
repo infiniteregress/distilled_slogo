@@ -3,6 +3,7 @@ package distilled_slogo.parsing;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import distilled_slogo.Constants;
 import distilled_slogo.tokenization.Token;
 
@@ -183,8 +184,10 @@ public class GrammarRule implements IGrammarRule<String> {
             List<String> searchRemaining, String infiniteWildcard) {
         if (searchRemaining.size() == 0) {
             if (searchPattern.size() == 0
-                    || (searchPattern.size() == 2 && searchPattern.get(1).contains(
-                            infiniteWildcard))) {
+                    || (searchPattern.size() == 2
+                            && patternsMatch(infiniteWildcard, searchPattern.get(1))
+                       )
+               ) {
                 return true;
             }
             return false;
@@ -195,7 +198,7 @@ public class GrammarRule implements IGrammarRule<String> {
             // if we're at the wildcard and both leading elements match, we
             // keep the pattern (so that we can continue wildcard matching),
             // but we iterate to the next search element
-            if (searchPattern.get(0).contains(searchRemaining.get(0))) {
+            if (patternsMatch(searchRemaining.get(0), searchPattern.get(0))){
                 newPattern = searchPattern;
                 newSearch = searchRemaining.subList(1, searchRemaining.size());
                 return true && infiniteMatchRecurse(newPattern, newSearch, infiniteWildcard);
@@ -209,7 +212,8 @@ public class GrammarRule implements IGrammarRule<String> {
             // so that the next time around, the two leading elements of each
             // list
             // can be matched and iterated over in unison
-            if (searchPattern.size() > 2 && searchPattern.get(2).contains(searchRemaining.get(0))) {
+            if (searchPattern.size() > 2
+                    && patternsMatch(searchRemaining.get(0), searchPattern.get(2))) {
                 newPattern = searchPattern.subList(2, searchPattern.size());
                 newSearch = searchRemaining;
                 return true && infiniteMatchRecurse(newPattern, newSearch, infiniteWildcard);
@@ -217,7 +221,7 @@ public class GrammarRule implements IGrammarRule<String> {
         }
         // if we're not matching a wildcard, we iterate one at a time over both
         // lists checking to see that both leading elements are equal
-        else if (searchPattern.get(0).contains(searchRemaining.get(0))) {
+        else if (patternsMatch(searchRemaining.get(0), searchPattern.get(0))) {
             newPattern = searchPattern.subList(1, searchPattern.size());
             newSearch = searchRemaining.subList(1, searchRemaining.size());
             return true && infiniteMatchRecurse(newPattern, newSearch, infiniteWildcard);
@@ -237,8 +241,24 @@ public class GrammarRule implements IGrammarRule<String> {
      */
     private boolean isInfinite (List<List<String>> searchPattern) {
         if (searchPattern.size() > 1
-                && searchPattern.get(1).contains(Constants.INFINITE_MATCHING_LABEL)) {
+                && patternsMatch(Constants.INFINITE_MATCHING_LABEL, searchPattern.get(1))) {
             return true;
+        }
+        return false;
+    }
+    
+    /**
+     * A level of indirection to indicate when a symbol has matched a pattern
+     * 
+     * @param toCompare The symbol to compare
+     * @param patterns The list of patterns to compare
+     * @return Whether the matches the patterns
+     */
+    private boolean patternsMatch(String toCompare, List<String> patterns) {
+        for (String pattern: patterns) {
+            if (Pattern.compile("^" + pattern + "$").matcher(toCompare).matches()){
+                return true;
+            }
         }
         return false;
     }
