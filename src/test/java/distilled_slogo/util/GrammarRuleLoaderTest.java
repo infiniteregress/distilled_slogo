@@ -1,10 +1,11 @@
-package distilled_slogo.parsing;
+package distilled_slogo.util;
 
 import java.io.IOException;
 import java.util.List;
 import org.junit.Test;
-import distilled_slogo.util.GrammarRuleLoader;
-import distilled_slogo.util.InvalidRulesException;
+import distilled_slogo.parsing.IGrammarRule;
+import distilled_slogo.parsing.Parser;
+import distilled_slogo.parsing.StringOperationFactory;
 
 // Note these tests only work when running mvn test due to file paths
 public class GrammarRuleLoaderTest {

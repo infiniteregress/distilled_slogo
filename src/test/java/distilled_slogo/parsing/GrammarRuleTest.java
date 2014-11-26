@@ -5,27 +5,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
-import distilled_slogo.Constants;
-import distilled_slogo.TestConstants;
 import distilled_slogo.tokenization.Token;
 
 public class GrammarRuleTest {
-    public void testInfiniteMatchRecurse (boolean expected, String[][] pattern, String[] search)
+    public void testInfiniteMatchRecurse (boolean expected, SymbolParsingRule[] pattern, String[] search)
             throws InvalidGrammarRuleException {
-        GrammarRule<String> rule = new GrammarRule<>(new ArrayList<>(), "0");
-        List<List<String>> searchPattern = new ArrayList<>();
-        for (String[] arg : pattern) {
-            searchPattern.add(Arrays.asList(arg));
-        }
-
-        boolean result = rule.infiniteMatchRecurse(searchPattern, Arrays.asList(search), Constants.INFINITE_MATCHING_LABEL);
+        GrammarRule<String> rule = new GrammarRule<>(Arrays.asList(pattern));
+        boolean result = rule.infiniteMatchRecurse(0, 0, Arrays.asList(search));
         assertEquals(expected, result);
     }
 
     @Test
     public void testSunny () throws InvalidGrammarRuleException {
         boolean sunnyResult = true;
-        String[][] pattern = { { "hi" }, { "there" }, { Constants.INFINITE_MATCHING_LABEL }, { "foo" } };
+        SymbolParsingRule[] pattern = {
+            new SymbolParsingRule("hi", 0, false),
+            new SymbolParsingRule("there", 0, true),
+            new SymbolParsingRule("foo", 0, false)
+        };
         String[] toSearch = { "hi", "there", "there", "there", "there", "foo" };
         testInfiniteMatchRecurse(sunnyResult, pattern, toSearch);
     }
@@ -33,89 +30,104 @@ public class GrammarRuleTest {
     @Test
     public void testSunnyEnd () throws InvalidGrammarRuleException {
         boolean sunnyEndResult = true;
-        String[][][] sunnyEnd = { { { "hi" }, { "there" }, { Constants.INFINITE_MATCHING_LABEL } },
-                { { "hi", "there", "there", "there", "there" } } };
-        testInfiniteMatchRecurse(sunnyEndResult, sunnyEnd[0], sunnyEnd[1][0]);
+        SymbolParsingRule[] pattern = {
+            new SymbolParsingRule("hi", 0, false),
+            new SymbolParsingRule("there", 0, true)
+        };
+        String[] toSearch = { "hi", "there", "there", "there", "there" };
+        testInfiniteMatchRecurse(sunnyEndResult, pattern, toSearch);
     }
 
     @Test
     public void testExtraPattern () throws InvalidGrammarRuleException {
         boolean extraPatternResult = false;
-        String[][][] extraPattern = {
-                { { "hi" }, { "there" }, { Constants.INFINITE_MATCHING_LABEL }, { "blah" } },
-                { { "hi", "there", "there", "there" } } };
-        testInfiniteMatchRecurse(extraPatternResult, extraPattern[0], extraPattern[1][0]);
+        SymbolParsingRule[] pattern = {
+            new SymbolParsingRule("hi", 0, false),
+            new SymbolParsingRule("there", 0, true),
+            new SymbolParsingRule("blah", 0, false)
+        };
+        String[] toSearch = { "hi", "there", "there", "there" };
+        testInfiniteMatchRecurse(extraPatternResult, pattern, toSearch);
     }
 
     @Test
     public void testExtraSearch () throws InvalidGrammarRuleException {
         boolean extraSearchResult = false;
-        String[][][] extraSearch = {
-                { { "hi" }, { "there" }, { Constants.INFINITE_MATCHING_LABEL } },
-                { { "hi", "there", "there", "blah" } } };
-        testInfiniteMatchRecurse(extraSearchResult, extraSearch[0], extraSearch[1][0]);
+        SymbolParsingRule[] pattern = {
+            new SymbolParsingRule("hi", 0, false),
+            new SymbolParsingRule("there", 0, true)
+        };
+        String[] toSearch = { "hi", "there", "there", "blah" };
+        testInfiniteMatchRecurse(extraSearchResult, pattern, toSearch);
     }
 
     @Test
     public void testJustOneRepeat () throws InvalidGrammarRuleException {
         boolean justOneRepeatResult = true;
-        String[][][] justOneRepeat = {
-                { { "hi" }, { "there" }, { Constants.INFINITE_MATCHING_LABEL } },
-                { { "hi", "there" } } };
-        testInfiniteMatchRecurse(justOneRepeatResult, justOneRepeat[0], justOneRepeat[1][0]);
+        SymbolParsingRule[] pattern = {
+            new SymbolParsingRule("hi", 0, false),
+            new SymbolParsingRule("there", 0, true)
+        };
+        String[] toSearch = { "hi", "there" };
+        testInfiniteMatchRecurse(justOneRepeatResult, pattern, toSearch);
     }
 
     @Test
     public void testMatches () throws InvalidGrammarRuleException {
-        String[] args = { "hi", "there", Constants.INFINITE_MATCHING_LABEL, "blah" };
-        IGrammarRule<String> rule = new GrammarRule<>(args, "0", TestConstants.RESULT_LABEL);
+        SymbolParsingRule[] pattern = {
+            new SymbolParsingRule("hi", 0, false),
+            new SymbolParsingRule("there", 0, true),
+            new SymbolParsingRule("blah", 0, false)
+        };
+        IGrammarRule<String> rule = new GrammarRule<>(Arrays.asList(pattern));
         String[] tokens = { "o", "hai", "hi", "there", "there", "there", "blah" };
         List<ISyntaxNode<String>> nodes = new ArrayList<>();
         for (String token : tokens) {
-            nodes.add(new SyntaxNode<String>(new Token(token, token), "", new ArrayList<>()));
+            nodes.add(new SyntaxNode<String>(new Token("", token), "", new ArrayList<>()));
         }
         assertEquals(2, rule.matches(nodes));
     }
-
-    //@Test
-    /*
-    public void testMultiMatches () {
-        String[][] args = { { "there", "canhaz" }, { Constants.INFINITE_MATCHING_LABEL },
-                { "blah" } };
-        String[] commands = { "I", "you" };
-        IGrammarRule rule = new GrammarRule(commands, args);
-        String[] selfAbsorbed = { "o", "hai", "I", "there", "there", "there", "there", "blah" };
-        String[] otherAbsorbed = { "o", "hai", "you", "there", "there", "there", "blah" };
-        String[] selfish = { "o", "hai", "I", "canhaz", "there", "there", "blah" };
-        String[] otherish = { "o", "hai", "you", "canhaz", "there", "blah" };
-        String[][] allTehSentenz = { selfAbsorbed, otherAbsorbed, selfish, otherish };
-        for (String[] sentenz : allTehSentenz) {
-            List<ISyntaxNode> nodes = new ArrayList<>();
-            for (String token : sentenz) {
-                nodes.add(new SyntaxNode(token, null, null));
-            }
-            assertEquals(2, rule.matches(nodes));
-        }
-    }
-    */
-
+    
     @Test
-    public void testDoTimes () throws InvalidGrammarRuleException {
-        String[] doTimes = {
-                            "DoTimes", TestConstants.OPENING_LIST_LABEL, TestConstants.VARIABLE_LABEL, TestConstants.CONSTANT_LABEL,
-                            TestConstants.CLOSING_LIST_LABEL, TestConstants.OPENING_LIST_LABEL,
-                            TestConstants.CONSTANT_LABEL, Constants.INFINITE_MATCHING_LABEL,
-                            TestConstants.CLOSING_LIST_LABEL };
-
-        IGrammarRule<String> doTimesRule = new GrammarRule<>(doTimes, "0", "result");
-        String[] expression = { "DoTimes", TestConstants.OPENING_LIST_LABEL, TestConstants.VARIABLE_LABEL,
-                TestConstants.CONSTANT_LABEL, TestConstants.CLOSING_LIST_LABEL,
-                TestConstants.OPENING_LIST_LABEL, TestConstants.CONSTANT_LABEL,
-                TestConstants.CLOSING_LIST_LABEL };
-        List<ISyntaxNode<String>> tokens = new ArrayList<>();
-        for (String string : expression) {
-            tokens.add(new SyntaxNode<String>(new Token(string, string), "", new ArrayList<>()));
+    public void testReduce () throws InvalidGrammarRuleException {
+        // sequence: "o", "hai", "there", "there", "blah"
+        // pattern: hai, there(infinite), blah(-1) additional: "snap"
+        // generates:
+        // "o", "snap"
+        //        |
+        //      "hai"
+        //      /   \
+        // "there" "there"
+        SymbolParsingRule[] pattern = {
+            new SymbolParsingRule("hai", 1, false),
+            new SymbolParsingRule("there", 0, true),
+            new SymbolParsingRule("blah", -1, false)
+        };
+        SymbolParsingRule[] additional = {
+            new SymbolParsingRule("snap", 2, false)
+        };
+        String[] sequence = { "o", "hai", "there", "there", "blah" };
+        
+        IGrammarRule<String> rule = new GrammarRule<>(Arrays.asList(pattern),
+                Arrays.asList(additional));
+        List<ISyntaxNode<String>> sequenceList = generateSequence(sequence);
+        IOperationFactory<String> factory = new StringOperationFactory();
+        List<ISyntaxNode<String>> reduced = rule.reduce(sequenceList, factory);
+        assertEquals(2, reduced.size());
+        assertEquals("o", reduced.get(0).token().label());
+        assertEquals("snap", reduced.get(1).token().label());
+        assertEquals(1, reduced.get(1).children().size());
+        ISyntaxNode<String> haiNode = reduced.get(1).children().get(0);
+        assertEquals("hai", haiNode.token().label());
+        assertEquals(2, haiNode.children().size());
+        assertEquals("there", haiNode.children().get(0).token().label());
+        assertEquals("there", haiNode.children().get(1).token().label());
+    }
+    private List<ISyntaxNode<String>> generateSequence(String[] sequenceArray) {
+        List<ISyntaxNode<String>> sequence = new ArrayList<>();
+        for (String element: sequenceArray) {
+            sequence.add(new SyntaxNode<>(new Token("", element), "", new ArrayList<>()));
         }
-        assertEquals(0, doTimesRule.matches(tokens));
+        return sequence;
     }
 }

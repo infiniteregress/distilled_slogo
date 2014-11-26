@@ -31,7 +31,8 @@ public interface IGrammarRule<T> {
      * Nest all or a rightmost subset of the nodes under a single node
      * 
      * @param nodes The nodes to reduce
+     * @param factory The factory used to create additional nodes
      * @return The reduced nodes
      */
-    public List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes);
+    public List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes, IOperationFactory<T> factory);
 }

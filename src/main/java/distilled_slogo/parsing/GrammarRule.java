@@ -2,7 +2,17 @@ package distilled_slogo.parsing;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import distilled_slogo.Constants;
 import distilled_slogo.tokenization.Token;
@@ -11,35 +21,45 @@ import distilled_slogo.tokenization.Token;
  * A class which represents a parsing rule for a particular language                <br><br>
  * 
  * A GrammarRule will match a list of symbols based on a pattern, which
- * is itself a list of symbols and special wildcards, such as
- * Constants.INFINITE_MATCHING_LABEL.                                               <br><br>
+ * is itself a list of symbols                                                      <br><br>
  * 
- * For instance, the rule ["foo", "bar", Constants.INFINITE_MATCHING_LABEL]
- * will match ["asdf", "foo", "bar", "bar"].                                        <br><br>
+ * For instance, the rule:                                                          <br><br>
  * 
- * As seen by the example, Constants.INFINITE_MATCHING_LABEL is analogous
- * to the '+' character in regular expressions.                                     <br><br>
+ * [{"label": "foo", "level": 1},
+ *  {"label": "bar", "level": 0, "repeating": true}                                 <br><br>
+ * 
+ * will match the token list ["asdf", "foo", "bar", "bar"].                         <br><br>
+ * 
+ * As seen by the example, the "repeating" attribute is analogous to the "+"
+ * character in regular expressions.                                                <br><br>
  * 
  * Note also that matching will occur as long as a rightmost subset of the
  * list of symbols matches the pattern.                                             <br><br>
  * 
  * Once a GrammarRule has been matched, it will nest the specified list of
- * symbols based on what the parent and grandparent are.                            <br><br>
+ * symbols based on the "level" specified for each symbol in the rule definition.   <br><br>
  * 
- * The meaning of parent is overloaded to mean either the index of an entry
- * in the pattern, or the name of an external name to be created. In any case,
- * the parent node will be popped from the list of symbols and will become
- * the parent of the remaining symbols.                                             <br><br>
+ * The level of a symbol indicates its depth in the generated subtree; symbols
+ * at a specific level will become the parent of the level below, i.e. the
+ * level one less than the current level. The special level -1 means to discard
+ * the symbol during the generation of the parse tree.                              <br><br>
  * 
- * The parent will then become the child of the grandparent, if the grandparent
- * is specified. Note that the grandparent shares the same semantics as the
- * parent, i.e. it is either an external name or an index.                          <br><br>
+ * Additional new nodes can be generated at a certain level during application of
+ * the rule using the "additional" list. To emulate a grammar, you would set the
+ * level of each symbol in the pattern to 0 and specify a single additional node
+ * of level 1.                                                                      <br><br>
  *
- * For example, with the pattern set to ["foo", "bar"], the parent set to "0",
- * and the grandparent set to "result", the result will be a tree which looks
- * like:                                                                            <br>
+ * For example, with the pattern set to:                                            <br><br>
  * 
- *           <br>
+ * [{"label": "foo", "level": 1},
+ *  {"label": "bar", "level": 0}]                                                   <br><br>
+ *  
+ * and the additional section set to:                                               <br><br>
+ * 
+ * [{"label": result", "level": 2}]                                                 <br><br>
+ * 
+ * the result will be a tree which looks like:                                      <br><br>
+ * 
  * result    <br>
  * |         <br>
  * foo       <br>
@@ -50,82 +70,87 @@ import distilled_slogo.tokenization.Token;
  *            grammar rule
  */
 public class GrammarRule<T> implements IGrammarRule<T> {   
-    /**
-     * SILLY GOTCHA: the format is NOT listed per pattern, but rather
-     * per individual symbol--
-     * 
-     * A single pattern ["hi", "there"] will generate
-     * 
-     * [["hi"],["there"]]
-     */
-    List<List<String>> pattern;
-    String parent;
-    String grandparent;
+    List<SymbolParsingRule> pattern;
+    List<SymbolParsingRule> additional;
 
     /**
-     * Create a new grammar rule with the specified pattern and parent,
-     * but without a grandparent
+     * Create a new grammar rule with the specified pattern and no additional
+     * nodes.
      * 
      * @param pattern The pattern associated with the rule
-     * @param parent The parent node to be used when applying this rule
-     * @throws InvalidGrammarRuleException If parent is empty
+     * @throws InvalidGrammarRuleException If an error with the rule definition
+     *                                     was found
      */
-    public GrammarRule (String[] pattern, String parent)
+    public GrammarRule (List<SymbolParsingRule> pattern)
             throws InvalidGrammarRuleException{
-        this(pattern, parent, "");
+        this(pattern, new ArrayList<>());
     }
 
     /**
-     * Create a new grammar rule with the specified pattern and parent,
-     * but without a grandparent
+     * Create a new grammar rule with the specified pattern and additional
+     * nodes.
+     * 
+     * Currently, there can be no more than one symbol per level greater than
+     * 0; i.e., there is no "multiple inheritance" in creating the tree.
      * 
      * @param pattern The pattern associated with the rule
-     * @param parent The parent node to be used when applying this rule
-     * @throws InvalidGrammarRuleException If parent is empty
+     * @param additional The additional nodes to create when applying this rule
+     * @throws InvalidGrammarRuleException If an error with the rule definition
+     *                                     was found
      */
-    public GrammarRule (List<String> pattern, String parent)
-            throws InvalidGrammarRuleException{
-        this(pattern, parent, "");
-    }
-
-    /**
-     * Create a new grammar rule with the specified pattern, parent,
-     * and grandparent
-     * 
-     * @param pattern The pattern associated with the rule
-     * @param parent The parent node to be used when applying this rule
-     * @param grandparent The parent of the parent node to be used when
-     *                    applying this rule
-     * @throws InvalidGrammarRuleException If the parent is empty
-     */
-    public GrammarRule (String[] pattern, String parent, String grandparent)
-            throws InvalidGrammarRuleException{
-        this(Arrays.asList(pattern), parent, grandparent);
-    }
-    
-    /**
-     * Create a new grammar rule with the specified pattern, parent,
-     * and grandparent
-     * 
-     * @param pattern The pattern associated with the rule
-     * @param parent The parent node to be used when applying this rule
-     * @param grandparent The parent of the parent node to be used when
-     *                    applying this rule
-     * @throws InvalidGrammarRuleException If the parent is empty
-     */
-    public GrammarRule (List<String> pattern, String parent, String grandparent)
+    public GrammarRule (List<SymbolParsingRule> pattern,
+                        List<SymbolParsingRule> additional)
             throws InvalidGrammarRuleException {
-        if (parent.length() == 0) {
-            throw new InvalidGrammarRuleException("The parent specified is empty");
+        List<SymbolParsingRule> allRules = new ArrayList<>(pattern);
+        allRules.addAll(additional);
+        validateRules(allRules);
+        this.pattern = new ArrayList<>(pattern);
+        this.additional = new ArrayList<>(additional);
+    }
+
+    /**
+     * Validate a list of rules. The rules must contain levels which are
+     * consecutive and which start at 0 or -1. There can be no more than
+     * one symbol at a level greater than 0.
+     * 
+     * @param rules The rules to validate
+     * @throws InvalidGrammarRuleException If there is more than one symbol at
+     *                                     a level greater than 0
+     * @throws InvalidGrammarRuleException If no symbols were found
+     * @throws InvalidGrammarRuleException If no symbols of level -1 or 0 were
+     *                                     found
+     * @throws InvalidGrammarRuleException The symbols specify levels that are
+     *                                     not consecutive
+     */
+    public void validateRules(List<SymbolParsingRule> rules)
+            throws InvalidGrammarRuleException{
+        SortedSet<Integer> levels = new TreeSet<>();
+        for (SymbolParsingRule rule: rules) {
+            if (levels.contains(rule.level()) && rule.level() > 0){
+                    throw new InvalidGrammarRuleException(rule
+                        + ": cannot have more than one symbol at level "
+                        + rule.level());
+            }
+            else {
+                levels.add(rule.level());
+            }
         }
-        this.pattern = new ArrayList<>();
-        for (String symbol: pattern) {
-            List<String> patternEntry = new ArrayList<>();
-            patternEntry.add(symbol);
-            this.pattern.add(patternEntry);
+        if (levels.size() == 0) {
+            throw new InvalidGrammarRuleException("No symbols found");
         }
-        this.parent = parent;
-        this.grandparent = grandparent;
+        if (!(levels.first().equals(-1) || levels.first().equals(0))){
+            throw new InvalidGrammarRuleException(
+                "no symbol of level -1 or 0 found");
+        }
+        Integer last = levels.first() - 1;
+        for (Integer level: levels) {
+            int expected = last + 1;
+            if (!level.equals(expected)) {
+                throw new InvalidGrammarRuleException(
+                    "No rule found at level " + expected);
+            }
+            last = expected;
+        }
     }
 
     /**
@@ -140,7 +165,8 @@ public class GrammarRule<T> implements IGrammarRule<T> {
      */
     @Override
     public int matches (List<ISyntaxNode<T>> nodes) {
-        List<List<String>> searchPattern = new ArrayList<>(pattern);
+        List<SymbolParsingRule> searchPattern =
+                Collections.unmodifiableList(pattern);
 
         List<String> toSearch = new ArrayList<>();
         for (ISyntaxNode<T> node : nodes) {
@@ -165,105 +191,94 @@ public class GrammarRule<T> implements IGrammarRule<T> {
      *              symbols
      * @return Whether a match was found
      */
-    private boolean matches (List<List<String>> searchPattern, List<String> toSearch,
-            int index) {
-        return infiniteMatchRecurse(searchPattern,
-                                    toSearch.subList(index, toSearch.size()),
-                                    Constants.INFINITE_MATCHING_LABEL);
+    private boolean matches (List<SymbolParsingRule> searchPattern,
+                             List<String> toSearch, int index) {
+        return infiniteMatchRecurse(0, index, toSearch);
     }
 
     /**
-     * Check whether a search pattern, potentially including wildcards, matches
-     * using a horribly baroque recursive algorithm. See the comments below for
-     * the gory details.
+     * Check whether a search pattern, matches using a not so horribly baroque
+     * anymore recursive algorithm. See the comments below if you are curious
      * 
-     * @param searchPattern The pattern to search for
-     * @param searchRemaining The rest of the list of symbols to search on
-     * @param infiniteWildcard The string representing a sequence of one or
-     *                         more of the previous element
+     * @param patternIndex The index in the pattern to match against
+     * @param searchIndex The index in the search to match against
+     * @param toSearch In what to search for a match
      * @return Whether a match was found
      */
-    boolean infiniteMatchRecurse (List<List<String>> searchPattern,
-            List<String> searchRemaining, String infiniteWildcard) {
-        if (searchRemaining.size() == 0) {
-            if (searchPattern.size() == 0
-                    || (searchPattern.size() == 2
-                            && patternsMatch(infiniteWildcard, searchPattern.get(1))
-                       )
-               ) {
-                return true;
-            }
+    boolean infiniteMatchRecurse (int patternIndex,
+                                  int searchIndex,
+                                  List<String> toSearch) {
+        // we've consumed everything from both the search and the pattern, so
+        // we have a match
+        if (searchIndex == toSearch.size() && patternIndex == pattern.size()) {
+            return true;
+        }
+        // There's still something left over in either the search or the
+        // pattern, so we don't have an exact match
+        if (searchIndex == toSearch.size() || patternIndex == pattern.size()) {
             return false;
         }
-        List<List<String>> newPattern;
-        List<String> newSearch;
-        if (isInfinite(searchPattern)) {
-            // if we're at the wildcard and both leading elements match, we
-            // keep the pattern (so that we can continue wildcard matching),
-            // but we iterate to the next search element
-            if (patternsMatch(searchRemaining.get(0), searchPattern.get(0))){
-                newPattern = searchPattern;
-                newSearch = searchRemaining.subList(1, searchRemaining.size());
-                return true && infiniteMatchRecurse(newPattern, newSearch, infiniteWildcard);
-            }
-            // if we encounter the element right after the wildcard element,
-            // then
-            // we have finished matching everything for the wildcard, so we
-            // should
-            // set the pattern to the element after the wildcard and handle it
-            // normally using non-infinite logic; searchRemaining stays the same
-            // so that the next time around, the two leading elements of each
-            // list
-            // can be matched and iterated over in unison
-            if (searchPattern.size() > 2
-                    && patternsMatch(searchRemaining.get(0), searchPattern.get(2))) {
-                newPattern = searchPattern.subList(2, searchPattern.size());
-                newSearch = searchRemaining;
-                return true && infiniteMatchRecurse(newPattern, newSearch, infiniteWildcard);
-            }
-        }
-        // if we're not matching a wildcard, we iterate one at a time over both
-        // lists checking to see that both leading elements are equal
-        else if (patternsMatch(searchRemaining.get(0), searchPattern.get(0))) {
-            newPattern = searchPattern.subList(1, searchPattern.size());
-            newSearch = searchRemaining.subList(1, searchRemaining.size());
-            return true && infiniteMatchRecurse(newPattern, newSearch, infiniteWildcard);
+        SymbolParsingRule currentPattern = pattern.get(patternIndex);
+        if (currentPattern.matches(toSearch.get(searchIndex))) {
+            int newPatternIndex = decideWhatTheNextPatternIs(
+                patternIndex, searchIndex, toSearch);
+            int newSearchIndex = searchIndex + 1;
+            return true
+                && infiniteMatchRecurse(newPatternIndex, newSearchIndex, toSearch);
         }
         return false;
     }
 
     /**
-     * To check for infinite, if any of the possible matches is the infinite
-     * wildcard, then everything else will be ignored; i.e. don't include
-     * anything else if you include the infinite matching wildcard
+     * When iterating through a list of symbols and the pattern, figure out
+     * what the next pattern to match is.
      * 
-     * @param searchPattern
-     *            The remaining pattern to search
-     * @return Whether the second element contains the infinite matching
-     *         wildcard
-     */
-    private boolean isInfinite (List<List<String>> searchPattern) {
-        if (searchPattern.size() > 1
-                && patternsMatch(Constants.INFINITE_MATCHING_LABEL, searchPattern.get(1))) {
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * A level of indirection to indicate when a symbol has matched a pattern
+     * Currently, this is important for supporting repeating pattern rules.
+     * For instance, if the current pattern is:
      * 
-     * @param toCompare The symbol to compare
-     * @param patterns The list of patterns to compare
-     * @return Whether the matches the patterns
+     * [{"label": "opening_parentheses", "level": -1, "repeating": false},
+     *  {"label": "parameter", "level": 0, "repeating": true},
+     *  {"label": "closing_parentheses", "level": -1, "repeating": false}]
+     *  
+     * and the list of symbols is:
+     * 
+     * ["opening_parentheses", "parameter", "parameter", "closing_parentheses"]
+     * 
+     * when we reach the first "parameter" in the list of symbols and in the
+     * pattern, we want to figure out whether the next pattern to match will be
+     * "closing_parentheses" or "parameter" when we iterate to the next symbol
+     * in the list. This is achieved by looking ahead to the next symbol and
+     * seeing if that symbol matches the next pattern.
+     * 
+     * In the case of the first "parameter", the pattern stays at "parameter"
+     * to match for the second "parameter". In the case of the second
+     * "parameter", the pattern list would advance to the next pattern because
+     * the next symbol, "closing_parentheses", matches the next pattern,
+     * "closing_parentheses".
+     * 
+     * @param currentPatternIndex The current index in the pattern list
+     * @param currentSymbolIndex The current index in the list of symbols
+     * @param symbols The list of symbols to use
+     * @return The next index in the pattern list
      */
-    private boolean patternsMatch(String toCompare, List<String> patterns) {
-        for (String pattern: patterns) {
-            if (Pattern.compile("^" + pattern + "$").matcher(toCompare).matches()){
-                return true;
+    private int decideWhatTheNextPatternIs(int currentPatternIndex,
+                                          int currentSymbolIndex,
+                                          List<String> symbols){
+        if (pattern.get(currentPatternIndex).isRepeating()) {
+            boolean lastPattern = (currentPatternIndex + 1 == pattern.size());
+            boolean lastSymbol = (currentSymbolIndex + 1 == symbols.size());
+            if (! lastSymbol) {
+                String nextSymbol = symbols.get(currentSymbolIndex + 1);
+                if (lastPattern) {
+                    return currentPatternIndex;
+                }
+                SymbolParsingRule nextPattern = pattern.get(currentPatternIndex + 1);
+                if (! nextPattern.matches(nextSymbol)) {
+                    return currentPatternIndex;
+                }
             }
         }
-        return false;
+        return currentPatternIndex + 1;
     }
 
     @Override
@@ -272,12 +287,13 @@ public class GrammarRule<T> implements IGrammarRule<T> {
     }
 
     @Override
-    public List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes) {
+    public List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes,
+                                        IOperationFactory<T> factory) {
         int matchLocation = matches(nodes);
         if (matchLocation == -1) {
             return nodes;
         }
-        List<ISyntaxNode<T>> reduced = reduce(nodes, matchLocation);
+        List<ISyntaxNode<T>> reduced = reduce(nodes, matchLocation, factory);
         return reduced;
     }
 
@@ -286,110 +302,116 @@ public class GrammarRule<T> implements IGrammarRule<T> {
      * 
      * @param nodes The nodes to nest
      * @param index The starting index where the nesting will occur
+     * @param factory The factory used to create additional generated nodes
      * @return The nested list
      */
-    private List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes, int index) {
+    private List<ISyntaxNode<T>> reduce (List<ISyntaxNode<T>> nodes, int index,
+                                         IOperationFactory<T> factory) {
         List<ISyntaxNode<T>> newNodes = new ArrayList<>();
         for (int i = 0; i < index; i++) {
             newNodes.add(nodes.get(i));
         }
         List<ISyntaxNode<T>> reducedNodes = new ArrayList<>(nodes.subList(index, nodes.size()));
-        reducedNodes = createNestedNodes(reducedNodes);
+        reducedNodes = createNestedNodes(reducedNodes, factory);
         newNodes.addAll(reducedNodes);
         return newNodes;
     }
 
     /**
-     * Perform the nesting on a list of symbols, nesting the parent on top
-     * of the rest of the symbols and potentially nesting the grandparent on
-     * top of the parent, if the grandparent is not empty
+     * Nest the nodes and any additional generated nodes based on their level
      * 
-     * @param nodes The list of nodes to nest
-     * @return The nested list
+     * @param nodes The nodes to nest
+     * @param factory The factory used to create additional generated nodes
+     * @return The nested list of nodes
      */
-    private List<ISyntaxNode<T>> createNestedNodes (List<ISyntaxNode<T>> nodes) {
-        List<ISyntaxNode<T>> newNodes = new ArrayList<>(nodes);
-        newNodes = createNestedNodes(newNodes, parent);
-        if (grandparent.length() != 0){
-            newNodes = createNestedNodes(newNodes, grandparent);
+    private List<ISyntaxNode<T>> createNestedNodes (List<ISyntaxNode<T>> nodes,
+                                                    IOperationFactory<T> factory) {
+        SortedMap<Integer, List<ISyntaxNode<T>>> levels = new TreeMap<>();
+        if (pattern.size() == 0){
+            return nodes;
         }
-        return newNodes;
+        appendNodesByLevel(nodes, levels);
+
+        for (SymbolParsingRule rule: additional) {
+            ISyntaxNode<T> newRule = new SyntaxNode<T>(
+                    new Token("", rule.label()),
+                    factory.makeOperation(rule.label()),
+                    new ArrayList<>());
+            appendToMapOfLists(rule.level(), newRule, levels);
+        }
+
+        List<ISyntaxNode<T>> nestedNodes = nestNodesByLevel(levels);
+        return nestedNodes;
     }
 
     /**
-     * Decide whether the parent or grandparent is an external name or an
-     * internal index, and continue delegating the nesting task further
-     * down
+     * Add all pattern nodes, grouping them in sorted order by level
      * 
-     * @param nodes The list of nodes to nest
-     * @param parent The parent or grandparent to nest
-     * @return The nested list
+     * @param nodes The nodes to add
+     * @param levels The levels SortedMap to add the nodes to
      */
-    private List<ISyntaxNode<T>> createNestedNodes
-    (List<ISyntaxNode<T>> nodes, String parent) {
-        int index = -1;
-        try {
-            index = Integer.parseInt(parent);
-        } catch (NumberFormatException e){
+    private void appendNodesByLevel (List<ISyntaxNode<T>> nodes,
+                                     SortedMap<Integer, List<ISyntaxNode<T>>> levels) {
+        int currentRuleIndex = 0;
+        for (int i = 0; i < nodes.size(); i++) {
+            ISyntaxNode<T> node = nodes.get(i);
+            SymbolParsingRule currentRule = pattern.get(currentRuleIndex);
+            if (! currentRule.drop()){
+                appendToMapOfLists(currentRule.level(), node, levels);
+            }
+            List<String> nodesAsString = new ArrayList<>();
+            for (ISyntaxNode<T> stringyNode: nodes) {
+                nodesAsString.add(stringyNode.token().label());
+            }
+            currentRuleIndex = decideWhatTheNextPatternIs(
+                currentRuleIndex, i, nodesAsString);
         }
-        boolean internal = isValidPatternIndex(index);
-        if (internal) {
-            return nestNodes(nodes, index);
+    }
+
+    /**
+     * Helper function to append a new entry to a list with a certain key.
+     * 
+     * This technically could be generalized for all Collections, but handling
+     * types such as Sets introduces additional complexity that is unnecessary
+     * for this particular application.
+     * 
+     * @param key The key of the list to append to
+     * @param toAppend The item to append to the list
+     * @param map The map to append the item to
+     */
+    private <K,V> void appendToMapOfLists(K key, V toAppend, Map<K,List<V>> map) {
+        List<V> newValue;
+        if (map.containsKey(key)){
+            newValue = new ArrayList<>(map.get(key));
         }
         else {
-            return nestNodes(nodes, parent);
+            newValue = new ArrayList<>();
         }
-    }
-    
-    /**
-     * Determine whether an index is in range for the pattern list
-     * 
-     * @param index The potential index
-     * @return Whether the index is in range of the pattern list
-     */
-    private boolean isValidPatternIndex(int index) {
-        if (index < 0 || index >= pattern.size()){
-            return false;
-        }
-        return true;
+        newValue.add(toAppend);
+        map.put(key, newValue);
     }
 
     /**
-     * Nest nodes using an internal index
+     * Nest the nodes by level using a SortedMap
      * 
-     * @param nodes The nodes to nest
-     * @param parentIndex The index of the parent
-     * @return The nested list, with a single parent entry and the rest of the nodes
-     *         as children of the parent
+     * @param levels The SortedMap of levels to use
+     * @return A list which contains the tree of nested nodes
      */
-    private List<ISyntaxNode<T>> nestNodes(List<ISyntaxNode<T>> nodes, int parentIndex){
-        List<ISyntaxNode<T>> newNodes = new ArrayList<>();
-        
-        List<ISyntaxNode<T>> children = new ArrayList<>(nodes);
-        ISyntaxNode<T> parent = children.get(parentIndex);
-        children.remove(parentIndex);
-        parent.setChildren(children);
-        newNodes.add(parent);
-        return newNodes;
-    }
-
-    /**
-     * Nest nodes using an external name
-     * 
-     * @param nodes The nodes to nest
-     * @param externalParent The name of the external parent node to create
-     * @return The nested list, with a single parent entry and the rest of the nodes
-     *         as children of the parent
-     */
-    private List<ISyntaxNode<T>> nestNodes(List<ISyntaxNode<T>> nodes, String externalParent){
-        List<ISyntaxNode<T>> newNodes = new ArrayList<>();
-        ISyntaxNode<T> parent =
-                new SyntaxNode<T>(
-                        new Token("", externalParent),
-                        null,
-                        new ArrayList<>(nodes));
-        newNodes.add(parent);
-        return newNodes;
+    private List<ISyntaxNode<T>> nestNodesByLevel(SortedMap<Integer, List<ISyntaxNode<T>>> levels){
+        // yo dawg I heard you like generics
+        Iterator<Entry<Integer, List<ISyntaxNode<T>>>> levelIterator =
+                levels.entrySet().iterator();
+        if (! levelIterator.hasNext()) {
+            return new ArrayList<>();
+        }
+        List<ISyntaxNode<T>> currentLevel = levelIterator.next().getValue();
+        while(levelIterator.hasNext()) {
+            ISyntaxNode<T> nextLevel = levelIterator.next().getValue().get(0);
+            nextLevel.setChildren(currentLevel);
+            currentLevel = new ArrayList<>();
+            currentLevel.add(nextLevel);
+        }
+        return currentLevel;
     }
 
     @Override

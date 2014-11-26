@@ -10,6 +10,7 @@ import distilled_slogo.Constants;
 import distilled_slogo.parsing.GrammarRule;
 import distilled_slogo.parsing.IGrammarRule;
 import distilled_slogo.parsing.InvalidGrammarRuleException;
+import distilled_slogo.parsing.SymbolParsingRule;
 
 /**
  * A class to load grammar rules from a file.
@@ -55,17 +56,34 @@ public class GrammarRuleLoader<T> extends RuleLoader<IGrammarRule<T>>{
         return rules;
     }
     private IGrammarRule<T> makeGrammarRuleFromJsonObject (JSONObject object) throws InvalidGrammarRuleException {
-        String parent = object.getString(Constants.JSON_GRAMMAR_PARENT);
-        String grandparent = "";
-        if (object.has(Constants.JSON_GRAMMAR_GRANDPARENT)){
-            grandparent = object.getString(Constants.JSON_GRAMMAR_GRANDPARENT);
-        }
         JSONArray patternArray = object.getJSONArray(Constants.JSON_GRAMMAR_PATTERN);
-        List<String> pattern = new ArrayList<>();
-        for (int i = 0; i < patternArray.length(); i++){
-            pattern.add(patternArray.getString(i));
+        List<SymbolParsingRule> pattern = makeAllSymbolParsingRules(patternArray);
+
+        List<SymbolParsingRule> additional = new ArrayList<>();
+        if (object.has(Constants.JSON_GRAMMAR_ADDITIONAL)){
+            JSONArray additionalArray = object.getJSONArray(Constants.JSON_GRAMMAR_ADDITIONAL);
+            additional = makeAllSymbolParsingRules(additionalArray);
         }
-        IGrammarRule<T> rule = new GrammarRule<T>(pattern, parent, grandparent);
+        IGrammarRule<T> rule = new GrammarRule<T>(pattern, additional);
         return rule;
+    }
+    private List<SymbolParsingRule> makeAllSymbolParsingRules(JSONArray symbolArray) {
+        List<SymbolParsingRule> rules = new ArrayList<>();
+        for (int i = 0; i < symbolArray.length(); i++) {
+            JSONObject element = symbolArray.getJSONObject(i);
+            SymbolParsingRule newSymbol = makeSymbolParsingRule(element);
+            rules.add(newSymbol);
+        }
+        return rules;
+    }
+    private SymbolParsingRule makeSymbolParsingRule(JSONObject patternElement) {
+        String label = patternElement.getString(Constants.JSON_GRAMMAR_LABEL);
+        int level = patternElement.getInt(Constants.JSON_GRAMMAR_LEVEL);
+        boolean repeating = false;
+        if (patternElement.has(Constants.JSON_GRAMMAR_REPEATING)){
+            repeating = patternElement.getBoolean(Constants.JSON_GRAMMAR_REPEATING);
+        }
+        SymbolParsingRule newSymbol = new SymbolParsingRule(label, level, repeating);
+        return newSymbol;
     }
 }

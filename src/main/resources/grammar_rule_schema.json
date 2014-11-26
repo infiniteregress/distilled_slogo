@@ -1,6 +1,24 @@
 {
     "title": "DSlogo Grammar Rule Schema",
     "type": "array",
+    "definitions": {
+        "symbol_parsing_rule": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer",
+                    "minimum": -1
+                },
+                "repeating": {
+                    "type": "boolean"
+                }
+            },
+            "required": ["label", "level"]
+        }
+    },
     "items": {
         "title": "Grammar Rule Definition",
         "type": "object",
@@ -8,17 +26,18 @@
             "pattern": {
                 "type": "array",
                 "items": {
-                    "type": "string"
+                    "$ref": "#/definitions/symbol_parsing_rule"
                 },
                 "minItems": 1
             },
-            "parent": {
-                "type": "string"
-            },
-            "grandparent": {
-                "type": "string"
+            "additional": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/symbol_parsing_rule"
+                }
             }
         },
-        "required": ["pattern", "parent"]
-    }
+        "required": ["pattern"]
+    },
+    "minItems": 1
 }

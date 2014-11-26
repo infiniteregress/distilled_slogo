@@ -28,22 +28,21 @@ public class Validator {
      * @throws IOException If an error occurred reading files
      */
     public static boolean validate (String jsonPath, String schemaPath, FileLoader jsonLoader) throws IOException {
-        String tokenRuleString = jsonLoader.loadFile(jsonPath);
         String schemaString = new InternalFileLoader().loadFile(schemaPath);
         JsonNode schemaNode = makeJsonNode(schemaString);
-        JsonNode tokenRule = makeJsonNode(tokenRuleString);
-        
         JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
         try {
+            String tokenRuleString = jsonLoader.loadFile(jsonPath);
+            JsonNode tokenRule = makeJsonNode(tokenRuleString);
             JsonSchema schema = factory.getJsonSchema(schemaNode);
             ProcessingReport report = schema.validate(tokenRule);
             return report.isSuccess();
         }
-        catch (ProcessingException e) {
+        catch (ProcessingException | IOException e) {
             return false;
         }
     }
-    private static JsonNode makeJsonNode(String string) throws JsonProcessingException, IOException {
+    private static JsonNode makeJsonNode(String string) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(string);
         return node;

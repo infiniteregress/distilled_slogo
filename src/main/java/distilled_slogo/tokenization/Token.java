@@ -6,8 +6,8 @@ package distilled_slogo.tokenization;
  */
 public class Token implements IToken{
 
-	private String text;
-	private String label;
+	private final String text;
+	private final String label;
 
 	/**
 	 * Create a new token

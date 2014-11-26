@@ -1,10 +1,8 @@
-package distilled_slogo.parsing;
+package distilled_slogo.util;
 
 import java.io.IOException;
 import org.junit.Test;
 import distilled_slogo.tokenization.Tokenizer;
-import distilled_slogo.util.InvalidRulesException;
-import distilled_slogo.util.TokenRuleLoader;
 
 public class TokenRuleLoaderTest {
     @Test

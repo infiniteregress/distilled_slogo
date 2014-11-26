@@ -1,12 +1,30 @@
 [
     {
-        "pattern": ["unaryCommand", "constant"],
-        "parent": "0",
-        "grandparent": "result"
+        "pattern": [
+            {"label": "unaryCommand", "level":1},
+            {"label": "constant", "level": 0}
+        ],
+        "additional": [
+            {"label": "result", "level": 2}
+        ]
     },
     {
-        "pattern": ["binaryCommand", "constant", "constant"],
-        "parent": "0",
-        "grandparent": "result"
+        "pattern": [
+            {"label": "binaryCommand", "level": 1},
+            {"label": "constant", "level": 0},
+            {"label": "constant", "level": 0}
+        ],
+        "additional": [
+            {"label": "result", "level": 2}
+        ]
+    },
+    {
+        "pattern": [
+            {"label": "repeatingCommand", "level": 1},
+            {"label": "constant", "level": 0, "repeating": true}
+        ],
+        "additional": [
+            {"label": "result", "level": 2}
+        ]
     }
 ]

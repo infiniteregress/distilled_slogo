@@ -16,5 +16,11 @@
         "body": "Sum",
         "opening": "\\W+",
         "closing": "\\W+"
+    },
+    {
+        "label": "repeatingCommand",
+        "body": "print",
+        "opening": "\\W+",
+        "closing": "\\W+"
     }
 ]

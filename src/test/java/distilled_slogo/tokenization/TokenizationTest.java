@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import distilled_slogo.Constants;
-import distilled_slogo.TestConstants;
 
 public class TokenizationTest {
     @Test
@@ -33,9 +32,9 @@ public class TokenizationTest {
     @Test
     public void testTokenize () {
         List<ITokenRule> rules = new ArrayList<>();
-        rules.add(new TokenRule.Builder(TestConstants.CONSTANT_LABEL, "-?[0-9]+\\.?[0-9]*").build());
-        rules.add(new TokenRule.Builder(TestConstants.COMMAND_LABEL, "[a-zA-Z_]+(\\?)?").build());
-        rules.add(new TokenRule.Builder(TestConstants.OPENING_LIST_LABEL, "\\[").build());
+        rules.add(new TokenRule.Builder("constant", "-?[0-9]+\\.?[0-9]*").build());
+        rules.add(new TokenRule.Builder("command", "[a-zA-Z_]+(\\?)?").build());
+        rules.add(new TokenRule.Builder("listOpening", "\\[").build());
         Reader input = new StringReader("sum [ 60 50");
         ITokenizer tokenizer = null;
         try {
@@ -49,9 +48,9 @@ public class TokenizationTest {
         } catch (IOException e) {
             fail();
         }
-        String[][] blah = { { TestConstants.COMMAND_LABEL, "sum" },
-                { TestConstants.OPENING_LIST_LABEL, "[" }, { TestConstants.CONSTANT_LABEL, "60" },
-                { TestConstants.CONSTANT_LABEL, "50" } };
+        String[][] blah = { { "command", "sum" },
+                { "listOpening", "[" }, { "constant", "60" },
+                { "constant", "50" } };
         for (int i = 0; i < blah.length; i++) {
             assertEquals(blah[i][0], tokens.get(i).label());
             assertEquals(blah[i][1], tokens.get(i).text());
