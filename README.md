@@ -30,7 +30,7 @@ The format for the tokenization rules is:
     [
         {
             "label": "constant",
-            "body": "\\w+",
+            "body": "[0-9]+",
             "opening": "\\W+",
             "closing": "\\W+"
         },
@@ -52,21 +52,22 @@ The format for the grammar rules is:
 
     [
         {
-            "pattern": ["unaryOperation", "constant"],
-            "parent": "0",
-            "grandparent": "result"
-        },
-        {
-            "pattern": ["unaryOperation", "result"],
-            "parent": "0",
-            "grandparent": "result"
+            "pattern": [
+                {"label": "unaryOperation", "level": 1},
+                {"label": "constant|result", "level": 0}
+            ],
+            "additional": [
+                {"label": "result", "level": 2}
+            ]
         }
     }
 
 Each grammar rule is a JSON object with several attributes:
--   "pattern" describes a sequence of labels that will match this pattern. This attribute is required. Any regex pattern is supported for each entry in this sequence. Also, the "\_infinite" label is a special label which will match one or more repetitions of the previous label in the sequence.
--   "parent" describes the node to nest the rest of the pattern under. This is either an index to a particular label in the pattern, or the name of a new tree node to create. This attribute is required.
--   "grandparent" describes the node to nest the parent under, if any. The same semantics as "parent" apply. This attribute is optional, and if not set, or set to "", then the parent will not be nested further.
+-   "pattern" describes a sequence of labels that will match this pattern. This attribute is required. Each element in "pattern" can contain three attributes:
+  -   "label": The regex pattern to match for for this element. This attribute is required.
+  -   "level": The integer level to nest this element at. This attribute is required. A special value of -1 indicates the element should not be included in the generated tree. 0 indicates that the element will be a leaf of the tree. Any value greater than 0 indicates that the element will be a parent of the level one less than the element's level and a child of the level one greater. There must be at most one element at each level above 0. Values less than -1 are not allowed.
+  -   "repeating": A boolean describing whether this particular element repeats one or more times. This attribute is optional.
+-   "additional" describes the additional nodes to create during nesting. This attribute is optional. The entries for "additional" have the same format as those for "pattern".
 
 Then, you can load these two files using their corresponding file loader utility classes:
 
@@ -76,10 +77,12 @@ Then, you can load these two files using their corresponding file loader utility
     GrammarRuleLoader<String> grammarLoader = new GrammarRuleLoader<>("./parsing_rules.txt");
     List<IGrammarRule<String>> grammarRules = grammarLoader.getRules();
 
-Then, you can create a new Tokenizer and Parser classes using these rules:
+Then, you can create new Tokenizer and Parser classes using these rules:
 
     ITokenizer tokenizer = new Tokenizer(tokenRules);
     IParser<String> parser = new Parser<>(grammarRules, new StringOperationFactory);
+
+The second argument to the Parser's constructor indicates the factory used to create new instances of a generic object from the token's label at each node. Distilled_slogo provides a basic StringOperationFactory which merely echoes the token's label into each node's "payload". If you have factories used to instantiate particular "command" objects at each node (i.e. you have Strategy classes), you may wrap those factories using the IOperationFactory interface.
 
 To generate the tree, simply call:
 
