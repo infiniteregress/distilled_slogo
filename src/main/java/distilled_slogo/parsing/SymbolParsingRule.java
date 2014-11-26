@@ -20,8 +20,9 @@ public class SymbolParsingRule {
     /**
      * Create a new symbol parsing rule
      * 
-     * @param labelPattern The regex pattern to match
+     * @param label The regex pattern to match
      * @param level The level the symbol should be placed at in the tree
+     * @param repeating Whether the pattern is repeating or not
      */
     public SymbolParsingRule(String label, int level, boolean repeating) {
         this.label = label;

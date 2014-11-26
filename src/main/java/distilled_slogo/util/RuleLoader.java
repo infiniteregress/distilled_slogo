@@ -16,15 +16,15 @@ public abstract class RuleLoader<T> {
      * 
      * @param jsonPath The path to the JSON file
      * @param schemaPath The path to the schema file
-     * @param jsonIsExternal Whether the JSON file is internal or external
+     * @param jsonLoader The file loader used to load the JSON file
      * @throws IOException If an error occurred reading files
      * @throws InvalidRulesException If the rules loaded are invalid
      */
-    protected RuleLoader(String jsonPath, String schemaPath, FileLoader loader)
+    protected RuleLoader(String jsonPath, String schemaPath, FileLoader jsonLoader)
             throws IOException, InvalidRulesException {
         this.schemaPath = schemaPath;
-        if (validate(jsonPath, loader)) {
-            rules = generateRules(jsonPath, loader);
+        if (validate(jsonPath, jsonLoader)) {
+            rules = generateRules(jsonPath, jsonLoader);
         }
         else {
             throw new InvalidRulesException(jsonPath + " is not valid");
@@ -34,7 +34,7 @@ public abstract class RuleLoader<T> {
      * Generate a list of rules based on a json file
      * 
      * @param jsonPath The path to the rules
-     * @param load The file loader used to load the json file
+     * @param loader The file loader used to load the json file
      * @return The list of rules
      * @throws IOException If an error occurred reading files
      * @throws InvalidRulesException If the rules loaded are invalid
@@ -45,12 +45,12 @@ public abstract class RuleLoader<T> {
      * Validate the json file based on the JSON schema
      * 
      * @param jsonPath The path to the rules
-     * @param loader The file loader used to load the json file
+     * @param jsonLoader The file loader used to load the json file
      * @return Whether the rules file is valid
      * @throws IOException If an error occurred reading files
      */
-    public boolean validate(String jsonPath, FileLoader loader) throws IOException {
-        return Validator.validate(jsonPath, this.schemaPath, loader);
+    public boolean validate(String jsonPath, FileLoader jsonLoader) throws IOException {
+        return Validator.validate(jsonPath, this.schemaPath, jsonLoader);
     }
 
     /**
