@@ -7,7 +7,7 @@ package distilled_slogo.parsing;
  */
 public class StringOperationFactory implements IOperationFactory<String> {
     @Override
-    public String makeOperation (String string) {
-        return string;
+    public String makeOperation (ISyntaxNode<String> currentNode) {
+        return currentNode.token().label();
     }
 }

@@ -1,5 +1,6 @@
 package distilled_slogo.parsing;
 
+import java.util.ArrayList;
 import java.util.List;
 import distilled_slogo.tokenization.IToken;
 
@@ -11,6 +12,7 @@ import distilled_slogo.tokenization.IToken;
 public class SyntaxNode<T> implements ISyntaxNode<T> {
 
     private T operation;
+    private boolean operationIsSet;
     private List<ISyntaxNode<T>> children;
     private IToken token;
 
@@ -18,18 +20,28 @@ public class SyntaxNode<T> implements ISyntaxNode<T> {
      * Create a new parse tree node
      * 
      * @param token The token associated with the node
-     * @param operation The operation associated with the node
-     * @param children The children of this node
      */
-    public SyntaxNode (IToken token, T operation, List<ISyntaxNode<T>> children) {
+    public SyntaxNode (IToken token) {
         this.token = token;
-        this.operation = operation;
-        this.children = children;
+        this.operation = null;
+        this.operationIsSet = false;
+        this.children = new ArrayList<>();
     }
 
     @Override
-    public T operation () {
-        return operation;
+    public T operation () throws IllegalStateException {
+        if (operationIsSet) {
+            return operation;
+        }
+        else {
+            throw new IllegalStateException("Operation was not set for: " + this);
+        }
+    }
+
+    @Override
+    public void setOperation(T operation) {
+        this.operation = operation;
+        this.operationIsSet = true;
     }
 
     @Override

@@ -12,9 +12,17 @@ public interface ISyntaxNode<T> {
     /**
      * Get the operation associated with the node
      * 
+     * @throws IllegalStateException If the operation is not set yet
      * @return The operation associated with the node
      */
-    public T operation ();
+    public T operation () throws IllegalStateException;
+
+    /**
+     * Set the operation associated with the node
+     * 
+     * @param operation The operation associated with the node
+     */
+    public void setOperation(T operation);
 
     /**
      * Get the children of this node

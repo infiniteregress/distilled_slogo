@@ -83,13 +83,42 @@ public class GrammarRuleTest {
         String[] tokens = { "o", "hai", "hi", "there", "there", "there", "blah" };
         List<ISyntaxNode<String>> nodes = new ArrayList<>();
         for (String token : tokens) {
-            nodes.add(new SyntaxNode<String>(new Token("", token), "", new ArrayList<>()));
+            nodes.add(new SyntaxNode<String>(new Token("", token)));
         }
         assertEquals(2, rule.matches(nodes));
     }
     
     @Test
-    public void testReduce () throws InvalidGrammarRuleException {
+    public void testReduceWithStringOperationFactory() throws InvalidGrammarRuleException{
+        IOperationFactory<String> factory = new StringOperationFactory();
+        List<ISyntaxNode<String>> reduced = reduce(factory);
+        assertEquals(2, reduced.size());
+        assertEquals("o", reduced.get(0).token().label());
+        assertEquals("snap", reduced.get(1).token().label());
+        assertEquals(1, reduced.get(1).children().size());
+        ISyntaxNode<String> haiNode = reduced.get(1).children().get(0);
+        assertEquals("hai", haiNode.token().label());
+        assertEquals(2, haiNode.children().size());
+        assertEquals("there", haiNode.children().get(0).token().label());
+        assertEquals("there", haiNode.children().get(1).token().label());
+    }
+
+    @Test
+    public void testReduceWithOperationNesting() throws InvalidGrammarRuleException{
+        IOperationFactory<StubNestedOperation> factory = new StubNestedOperationFactory();
+        List<ISyntaxNode<StubNestedOperation>> reduced = reduce(factory);
+        assertEquals(2, reduced.size());
+        ISyntaxNode<StubNestedOperation> snapNode = reduced.get(1);
+        assertEquals("snap", snapNode.operation().name());
+        assertEquals(1, snapNode.children().size());
+        ISyntaxNode<StubNestedOperation> haiNode = snapNode.children().get(0);
+        assertEquals("hai", haiNode.operation().name());
+        assertEquals(2, haiNode.operation().children().size());
+        assertEquals("there", haiNode.operation().children().get(0).name());
+        assertEquals("there", haiNode.operation().children().get(1).name());
+    }
+    
+    private <T> List<ISyntaxNode<T>> reduce (IOperationFactory<T> factory) throws InvalidGrammarRuleException {
         // sequence: "o", "hai", "there", "there", "blah"
         // pattern: hai, there(infinite), blah(-1) additional: "snap"
         // generates:
@@ -108,26 +137,18 @@ public class GrammarRuleTest {
         };
         String[] sequence = { "o", "hai", "there", "there", "blah" };
         
-        IGrammarRule<String> rule = new GrammarRule<>(Arrays.asList(pattern),
+        IGrammarRule<T> rule = new GrammarRule<>(Arrays.asList(pattern),
                 Arrays.asList(additional));
-        List<ISyntaxNode<String>> sequenceList = generateSequence(sequence);
-        IOperationFactory<String> factory = new StringOperationFactory();
-        List<ISyntaxNode<String>> reduced = rule.reduce(sequenceList, factory);
-        assertEquals(2, reduced.size());
-        assertEquals("o", reduced.get(0).token().label());
-        assertEquals("snap", reduced.get(1).token().label());
-        assertEquals(1, reduced.get(1).children().size());
-        ISyntaxNode<String> haiNode = reduced.get(1).children().get(0);
-        assertEquals("hai", haiNode.token().label());
-        assertEquals(2, haiNode.children().size());
-        assertEquals("there", haiNode.children().get(0).token().label());
-        assertEquals("there", haiNode.children().get(1).token().label());
+        List<ISyntaxNode<T>> sequenceList = generateSequence(sequence);
+        List<ISyntaxNode<T>> reduced = rule.reduce(sequenceList, factory);
+        return reduced;
     }
-    private List<ISyntaxNode<String>> generateSequence(String[] sequenceArray) {
-        List<ISyntaxNode<String>> sequence = new ArrayList<>();
+    private <T> List<ISyntaxNode<T>> generateSequence(String[] sequenceArray) {
+        List<ISyntaxNode<T>> sequence = new ArrayList<>();
         for (String element: sequenceArray) {
-            sequence.add(new SyntaxNode<>(new Token("", element), "", new ArrayList<>()));
+            sequence.add(new SyntaxNode<>(new Token("", element)));
         }
         return sequence;
     }
+
 }

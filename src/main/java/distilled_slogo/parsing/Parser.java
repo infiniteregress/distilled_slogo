@@ -66,9 +66,8 @@ public class Parser<T> implements IParser<T> {
     List<ISyntaxNode<T>> tokensToNodes (List<IToken> tokens) {
         List<ISyntaxNode<T>> nodes = new ArrayList<>();
         for (IToken token : tokens) {
-            T operation = operationFactory.makeOperation(token.text());
             ISyntaxNode<T> newNode =
-                    new SyntaxNode<T>(token, operation, new ArrayList<>());
+                    new SyntaxNode<T>(token);
             nodes.add(newNode);
         }
         return nodes;

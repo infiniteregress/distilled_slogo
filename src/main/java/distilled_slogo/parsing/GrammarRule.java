@@ -333,14 +333,11 @@ public class GrammarRule<T> implements IGrammarRule<T> {
         appendNodesByLevel(nodes, levels);
 
         for (SymbolParsingRule rule: additional) {
-            ISyntaxNode<T> newRule = new SyntaxNode<T>(
-                    new Token("", rule.label()),
-                    factory.makeOperation(rule.label()),
-                    new ArrayList<>());
+            ISyntaxNode<T> newRule = new SyntaxNode<T>(new Token("", rule.label()));
             appendToMapOfLists(rule.level(), newRule, levels);
         }
 
-        List<ISyntaxNode<T>> nestedNodes = nestNodesByLevel(levels);
+        List<ISyntaxNode<T>> nestedNodes = nestNodesByLevel(levels, factory);
         return nestedNodes;
     }
 
@@ -395,9 +392,12 @@ public class GrammarRule<T> implements IGrammarRule<T> {
      * Nest the nodes by level using a SortedMap
      * 
      * @param levels The SortedMap of levels to use
+     * @param factory The factory to use to create the operation for each node
      * @return A list which contains the tree of nested nodes
      */
-    private List<ISyntaxNode<T>> nestNodesByLevel(SortedMap<Integer, List<ISyntaxNode<T>>> levels){
+    private List<ISyntaxNode<T>> nestNodesByLevel(
+            SortedMap<Integer, List<ISyntaxNode<T>>> levels,
+            IOperationFactory<T> factory){
         // yo dawg I heard you like generics
         Iterator<Entry<Integer, List<ISyntaxNode<T>>>> levelIterator =
                 levels.entrySet().iterator();
@@ -405,9 +405,13 @@ public class GrammarRule<T> implements IGrammarRule<T> {
             return new ArrayList<>();
         }
         List<ISyntaxNode<T>> currentLevel = levelIterator.next().getValue();
+        for (ISyntaxNode<T> node: currentLevel) {
+            node.setOperation(factory.makeOperation(node));
+        }
         while(levelIterator.hasNext()) {
             ISyntaxNode<T> nextLevel = levelIterator.next().getValue().get(0);
             nextLevel.setChildren(currentLevel);
+            nextLevel.setOperation(factory.makeOperation(nextLevel));
             currentLevel = new ArrayList<>();
             currentLevel.add(nextLevel);
         }

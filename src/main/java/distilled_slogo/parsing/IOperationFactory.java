@@ -12,8 +12,8 @@ public interface IOperationFactory<T> {
     /**
      * Make an operation based on a string parameter
      * 
-     * @param string The operation to create
+     * @param currentNode The ISyntaxNode to make an operation for
      * @return The created operation
      */
-    public T makeOperation(String string);
+    public T makeOperation(ISyntaxNode<T> currentNode);
 }
